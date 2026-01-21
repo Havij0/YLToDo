@@ -1,32 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My To-Do App</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 To-Do App</title>
+<style>
+body { font-family: sans-serif; margin: 0; padding: 0; }
+header { background: #007BFF; color: white; padding: 1rem; text-align: center; }
+nav { position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; background: #eee; padding: 0.5rem 0; }
+nav button { background: none; border: none; font-size: 1rem; }
+.tab { display: none; padding: 1rem; margin-bottom: 3rem; }
+.task { border: 1px solid #ccc; margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 4px; }
+.task .title { font-weight: bold; }
+.subtasks { margin-left: 1rem; }
+.subtask { display: flex; align-items: center; }
+.subtask input { margin-right: 0.5rem; }
+button.action { margin-left: 0.5rem; }
+.done { text-decoration: line-through; color: gray; }
+</style>
 </head>
 <body>
 
-  <h1>My To-Do App</h1>
+<header>My To-Do App V2</header>
 
-  <div class="controls">
-    <input type="text" id="taskTitle" placeholder="What do you need to do?" />
-    <input type="date" id="taskDate" />
-    <select id="taskPriority">
-      <option value="normal">Normal</option>
-      <option value="important">Important</option>
-    </select>
-    <select id="taskList">
-      <option value="daily">Daily</option>
-      <option value="weekly">Weekly</option>
-      <option value="shopping">Shopping</option>
-    </select>
-    <button onclick="addTask()">Add</button>
+<!-- Tabs -->
+<nav>
+  <button onclick="showTab('today')">Today 🏠</button>
+  <button onclick="showTab('reschedule')">Reschedule ⚪</button>
+  <button onclick="showTab('week')">Week 📆</button>
+</nav>
+
+<!-- Today Tab -->
+<div id="today" class="tab"></div>
+
+<!-- Reschedule Tab -->
+<div id="reschedule" class="tab"></div>
+
+<!-- Week Tab -->
+<div id="week" class="tab"></div>
+
+<!-- Add Task Modal -->
+<div id="addTaskModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
+  <div style="background:white; padding:1rem; border-radius:4px; width:90%; max-width:400px;">
+    <h3>Add Task</h3>
+    <input type="text" id="taskTitle" placeholder="Task title" style="width:100%; margin-bottom:0.5rem;">
+    <label>Priority:
+      <select id="taskPriority">
+        <option value="3">Normal</option>
+        <option value="2">Important</option>
+        <option value="1">Must Do</option>
+      </select>
+    </label><br><br>
+    <label>Date: <input type="date" id="taskDate"></label><br><br>
+    <label><input type="checkbox" id="taskWeekend"> Weekend Task</label><br><br>
+    <label><input type="checkbox" id="taskHasSubtasks"> Has Subtasks</label><br><br>
+    <button onclick="addTask()">Save</button>
+    <button onclick="closeAddTaskModal()">Cancel</button>
   </div>
+</div>
 
-  <div id="lists"></div>
+<!-- Add Task Button -->
+<button style="position:fixed; bottom:4rem; right:1rem; font-size:2rem; border:none; background:#007BFF; color:white; width:50px; height:50px; border-radius:50%;" onclick="openAddTaskModal()">+</button>
 
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
