@@ -7,6 +7,9 @@ let tasks = JSON.parse(localStorage.getItem("tasks")) || [
   }
 ];
 
+// 🔒 UI STATE (important fix)
+let expandedTasks = new Set();
+
 function save() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
@@ -15,7 +18,7 @@ function render() {
   const list = document.getElementById("taskList");
   list.innerHTML = "";
 
-  // ✅ FIX: open tasks first, completed at bottom
+  // Open tasks first, completed at bottom
   const sortedTasks = [...tasks].sort((a, b) => a.done - b.done);
 
   sortedTasks.forEach(task => {
@@ -25,6 +28,7 @@ function render() {
     const header = document.createElement("div");
     header.className = "task-header";
 
+    // Main checkbox
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = task.done;
@@ -41,26 +45,33 @@ function render() {
     header.appendChild(checkbox);
     header.appendChild(title);
 
+    // Chevron
+    let chevron;
     let subtasksEl;
 
     if (task.subtasks.length) {
-      const chevron = document.createElement("div");
-      chevron.textContent = "›";
+      chevron = document.createElement("div");
       chevron.className = "chevron";
+      chevron.textContent = "›";
 
       chevron.onclick = () => {
-        const visible = subtasksEl.style.display === "block";
-        subtasksEl.style.display = visible ? "none" : "block";
-        chevron.textContent = visible ? "›" : "⌄";
+        if (expandedTasks.has(task.id)) {
+          expandedTasks.delete(task.id);
+          subtasksEl.style.display = "none";
+          chevron.textContent = "›";
+        } else {
+          expandedTasks.add(task.id);
+          subtasksEl.style.display = "block";
+          chevron.textContent = "⌄";
+        }
       };
 
       header.appendChild(chevron);
     }
 
-    // ➕ Add subtask (minimal)
+    // ➕ Add subtask (temporary UX)
     const addSub = document.createElement("button");
     addSub.textContent = "+ subtask";
-    addSub.style.marginLeft = "8px";
     addSub.onclick = () => {
       const text = prompt("Subtask");
       if (!text) return;
@@ -71,12 +82,14 @@ function render() {
         done: false
       });
 
+      expandedTasks.add(task.id); // keep open
       save();
       render();
     };
 
     header.appendChild(addSub);
 
+    // Subtasks container
     subtasksEl = document.createElement("div");
     subtasksEl.className = "subtasks";
 
@@ -91,9 +104,13 @@ function render() {
       subCheck.onchange = () => {
         sub.done = subCheck.checked;
 
-        // ✅ auto-complete main task
-        task.done = task.subtasks.length > 0 &&
-                    task.subtasks.every(s => s.done);
+        // 🔒 keep expanded while interacting
+        expandedTasks.add(task.id);
+
+        // auto-complete main task
+        task.done =
+          task.subtasks.length > 0 &&
+          task.subtasks.every(s => s.done);
 
         save();
         render();
@@ -106,6 +123,12 @@ function render() {
       subEl.appendChild(subTitle);
       subtasksEl.appendChild(subEl);
     });
+
+    // Restore expanded state
+    if (expandedTasks.has(task.id)) {
+      subtasksEl.style.display = "block";
+      if (chevron) chevron.textContent = "⌄";
+    }
 
     taskEl.appendChild(header);
     if (task.subtasks.length) taskEl.appendChild(subtasksEl);
