@@ -1,72 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>To-Do App V2</title>
+<meta charset="UTF-8" />
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+/>
+<title>Today Tasks</title>
+
 <style>
-body { font-family:sans-serif; margin:0; padding:0; }
-header { background:#007BFF; color:white; padding:1rem; text-align:center; }
-nav { position:fixed; bottom:0; width:100%; display:flex; justify-content:space-around; background:#eee; padding:0.5rem 0; }
-nav button { background:none; border:none; font-size:1rem; }
-nav button.active { font-weight:bold; color:#007BFF; }
+/* ===== RESET & BASE ===== */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-.tab { display:none; padding:1rem; margin-bottom:3rem; }
-.task { border:1px solid #ccc; margin-bottom:0.5rem; padding:0.5rem; border-radius:4px; position:relative; }
-.task .title { font-weight:bold; }
-.subtasks { margin-left:1rem; }
-.subtask { display:flex; align-items:center; }
-.subtask input { margin-right:0.5rem; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  background: #f5f5f7;
+  color: #1c1c1e;
+}
 
-.options-menu { position:absolute; top:5px; right:5px; background:white; border:1px solid #ccc; border-radius:4px; display:none; flex-direction:column; z-index:10; }
-.options-menu button { border:none; background:none; padding:0.25rem 0.5rem; cursor:pointer; }
+/* ===== HEADER ===== */
+.header {
+  padding: 16px;
+  text-align: center;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5ea;
+}
 
-.agenda-day { display:inline-block; width:40px; height:40px; margin:2px; border-radius:4px; text-align:center; line-height:40px; cursor:pointer; }
-.agenda-day.no-task { background:#f0f0f0; color:#888; }
-.agenda-day.normal { background:#ffeb99; }
-.agenda-day.important { background:#ffb84d; }
-.agenda-day.mustdo { background:#ff4d4d; color:white; }
+.header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.header .date {
+  font-size: 14px;
+  color: #8e8e93;
+  margin-top: 4px;
+}
+
+/* ===== CONTENT ===== */
+.content {
+  padding: 16px;
+  padding-bottom: 120px;
+}
+
+/* ===== TASK CARD ===== */
+.task-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.task-header {
+  display: flex;
+  align-items: center;
+}
+
+.priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.priority-must { background: #ff3b30; }
+.priority-important { background: #ff9500; }
+.priority-normal { background: #ffcc00; }
+
+.task-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.task-options {
+  font-size: 22px;
+  padding: 6px 8px;
+}
+
+/* ===== SUBTASKS ===== */
+.subtasks {
+  margin-top: 10px;
+  padding-left: 22px;
+}
+
+.subtask {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  color: #3a3a3c;
+  margin-top: 8px;
+}
+
+.subtask input {
+  width: 22px;
+  height: 22px;
+  margin-right: 10px;
+}
+
+/* ===== COMPLETED TASK ===== */
+.task-completed {
+  opacity: 0.4;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  color: #8e8e93;
+  margin-top: 80px;
+}
+
+/* ===== ADD BUTTON ===== */
+.add-button {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #007aff;
+  color: #ffffff;
+  font-size: 32px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== TAB BAR ===== */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 72px;
+  background: #ffffff;
+  border-top: 1px solid #e5e5ea;
+  display: flex;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: #8e8e93;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tab.active {
+  color: #007aff;
+  font-weight: 600;
+}
+
+.tab-icon {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
 </style>
 </head>
+
 <body>
 
-<header>My To-Do App V2</header>
+<!-- HEADER -->
+<div class="header">
+  <h1>Today</h1>
+  <div class="date">Tuesday · Jan 21</div>
+</div>
 
-<!-- Tabs -->
-<nav>
-  <button id="tabTodayBtn" onclick="showTab('today')">Today 🏠</button>
-  <button id="tabRescheduleBtn" onclick="showTab('reschedule')">Reschedule ⚪</button>
-  <button id="tabAgendaBtn" onclick="showTab('agenda')">Agenda 📆</button>
-</nav>
+<!-- CONTENT -->
+<div class="content">
 
-<!-- Tabs -->
-<div id="today" class="tab"></div>
-<div id="reschedule" class="tab"></div>
-<div id="agenda" class="tab"></div>
+  <!-- TASK -->
+  <div class="task-card">
+    <div class="task-header">
+      <div class="priority-dot priority-must"></div>
+      <div class="task-title">Buy groceries</div>
+      <div class="task-options">⋯</div>
+    </div>
 
-<!-- Add Task Modal -->
-<div id="addTaskModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;">
-  <div style="background:white; padding:1rem; border-radius:4px; width:90%; max-width:400px;">
-    <h3>Add Task</h3>
-    <input type="text" id="taskTitle" placeholder="Task title" style="width:100%; margin-bottom:0.5rem;" value="">
-    <label>Priority:
-      <select id="taskPriority">
-        <option value="3" selected>Normal</option>
-        <option value="2">Important</option>
-        <option value="1">Must Do</option>
-      </select>
-    </label><br><br>
-    <label>Date: <input type="date" id="taskDate"></label><br><br>
-    <label><input type="checkbox" id="taskWeekend"> Weekend Task</label><br><br>
-    <label><input type="checkbox" id="taskHasSubtasks"> Has Subtasks</label><br><br>
-    <button onclick="addTask()">Save</button>
-    <button onclick="closeAddTaskModal()">Cancel</button>
+    <div class="subtasks">
+      <div class="subtask">
+        <input type="checkbox" />
+        Milk
+      </div>
+      <div class="subtask">
+        <input type="checkbox" />
+        Bread
+      </div>
+      <div class="subtask">
+        <input type="checkbox" />
+        Eggs
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLETED TASK -->
+  <div class="task-card task-completed">
+    <div class="task-header">
+      <div class="priority-dot priority-normal"></div>
+      <div class="task-title">Send email</div>
+      <div class="task-options">⋯</div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE (example, keep commented) -->
+  <!--
+  <div class="empty-state">
+    <p>Nothing planned today.</p>
+    <p>Enjoy the free space.</p>
+  </div>
+  -->
+
+</div>
+
+<!-- ADD BUTTON -->
+<button class="add-button">+</button>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <div class="tab">
+    <div class="tab-icon">📅</div>
+    Agenda
+  </div>
+  <div class="tab active">
+    <div class="tab-icon">🏠</div>
+    Today
+  </div>
+  <div class="tab">
+    <div class="tab-icon">⏳</div>
+    Reschedule
   </div>
 </div>
 
-<!-- Add Task Button -->
-<button style="position:fixed; bottom:4rem; right:1rem; font-size:2rem; border:none; background:#007BFF; color:white; width:50px; height:50px; border-radius:50%;" onclick="openAddTaskModal()">+</button>
-
-<script src="app.js"></script>
 </body>
 </html>
