@@ -1,63 +1,125 @@
-let data = JSON.parse(localStorage.getItem("todoData")) || {
-  daily: [],
-  weekly: [],
-  shopping: []
-};
+// ======= LocalStorage =======
+let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
 
-function save() {
-  localStorage.setItem("todoData", JSON.stringify(data));
+// ======= Utility =======
+function saveTasks() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
 }
+
+// ======= Tabs =======
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+  document.getElementById(tab).style.display = 'block';
+  renderTasks();
+}
+
+// ======= Add Task Modal =======
+function openAddTaskModal() { document.getElementById('addTaskModal').style.display = 'flex'; }
+function closeAddTaskModal() { document.getElementById('addTaskModal').style.display = 'none'; }
 
 function addTask() {
-  const title = taskTitle.value.trim();
-  if (!title) return;
+  const title = document.getElementById('taskTitle').value.trim();
+  if(!title) return alert('Task title required');
+  const priority = parseInt(document.getElementById('taskPriority').value);
+  const dateVal = document.getElementById('taskDate').value;
+  const weekend = document.getElementById('taskWeekend').checked;
+  const hasSubtasks = document.getElementById('taskHasSubtasks').checked;
 
-  const task = {
+  let state;
+  let date = dateVal ? dateVal : null;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  if(date === todayStr) state = "today";
+  else if(date) state = "scheduled";
+  else if(weekend) state = "reschedule"; // weekend tasks stored in Reschedule tab
+  else state = "reschedule";
+
+  const newTask = {
+    id: Date.now().toString(),
     title,
-    date: taskDate.value,
-    priority: taskPriority.value,
-    done: false
+    priority,
+    state,
+    date,
+    hasSubtasks,
+    subtasks: [],
+    reminderEnabled: false,
+    reminderTime: null,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   };
 
-  data[taskList.value].push(task);
-  save();
-  taskTitle.value = "";
-  render();
+  tasks.push(newTask);
+  saveTasks();
+  closeAddTaskModal();
+  renderTasks();
 }
 
-function toggleDone(list, index) {
-  data[list][index].done = !data[list][index].done;
-  save();
-  render();
+// ======= Render =======
+function renderTasks() {
+  const todayDiv = document.getElementById('today');
+  const rescheduleDiv = document.getElementById('reschedule');
+  const weekDiv = document.getElementById('week');
+
+  todayDiv.innerHTML = '';
+  rescheduleDiv.innerHTML = '';
+  weekDiv.innerHTML = '';
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  tasks.forEach(task => {
+    const taskEl = document.createElement('div');
+    taskEl.className = 'task';
+    if(task.state === 'done') taskEl.classList.add('done');
+
+    taskEl.innerHTML = `<span class="title">${task.title}</span> 
+      <button class="action" onclick="markDone('${task.id}')">✅</button>
+      <button class="action" onclick="rescheduleTask('${task.id}')">🔁</button>`;
+
+    // Subtasks
+    if(task.hasSubtasks && task.subtasks.length){
+      const subDiv = document.createElement('div');
+      subDiv.className = 'subtasks';
+      task.subtasks.forEach((st, idx) => {
+        const stEl = document.createElement('div');
+        stEl.className = 'subtask';
+        stEl.innerHTML = `<input type="checkbox" ${st.completed ? 'checked' : ''} onchange="toggleSubtask('${task.id}',${idx})">${st.title}`;
+        subDiv.appendChild(stEl);
+      });
+      taskEl.appendChild(subDiv);
+    }
+
+    if(task.state === 'today') todayDiv.appendChild(taskEl);
+    else if(task.state === 'reschedule') rescheduleDiv.appendChild(taskEl);
+    else if(task.state === 'scheduled') weekDiv.appendChild(taskEl);
+  });
 }
 
-function render() {
-  lists.innerHTML = "";
+// ======= Actions =======
+function markDone(id) {
+  const t = tasks.find(x => x.id === id);
+  if(t) { t.state='done'; t.updatedAt=Date.now(); saveTasks(); renderTasks(); }
+}
 
-  for (const list in data) {
-    const div = document.createElement("div");
-    div.className = "list";
-    div.innerHTML = `<h2>${list.toUpperCase()}</h2>`;
+function rescheduleTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if(!t) return;
+  const newDate = prompt("Enter new date (YYYY-MM-DD) or leave blank for Reschedule/Weekend:");
+  if(newDate) { t.date=newDate; 
+    const todayStr = new Date().toISOString().split('T')[0];
+    t.state = newDate===todayStr?"today":"scheduled"; 
+  } else { t.date=null; t.state='reschedule'; }
+  t.updatedAt=Date.now(); saveTasks(); renderTasks();
+}
 
-    data[list].forEach((task, i) => {
-      const taskDiv = document.createElement("div");
-      taskDiv.className =
-        "task " +
-        (task.priority === "important" ? "important " : "") +
-        (task.done ? "done" : "");
-
-      taskDiv.innerHTML = `
-        <span>${task.title} ${task.date ? "📅 " + task.date : ""}</span>
-        <button onclick="toggleDone('${list}', ${i})">
-          ${task.done ? "↩️" : "✅"}
-        </button>
-      `;
-
-      div.appendChild(taskDiv);
-    });
-
-    lists.appendChild(div);
+function toggleSubtask(taskId, idx) {
+  const t = tasks.find(x => x.id === taskId);
+  if(t) {
+    t.subtasks[idx].completed = !t.subtasks[idx].completed;
+    saveTasks();
+    renderTasks();
   }
 }
 
-render();
+// ======= Initial Load =======
+showTab('today');
