@@ -77,3 +77,7 @@ input[type="checkbox"] {
   background: black;
   color: white;
 }
+#taskList {
+  padding: 12px;
+  padding-bottom: 120px; /* FIX: space for floating button */
+}
