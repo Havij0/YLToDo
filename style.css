@@ -17,12 +17,12 @@ header {
 
 #taskList {
   padding: 12px;
-  padding-bottom: 120px; /* prevents overlap with button */
+  padding-bottom: 130px; /* space for floating button */
 }
 
 .task {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 14px;
   margin-bottom: 12px;
   transition: opacity 0.3s ease;
@@ -44,25 +44,36 @@ header {
 }
 
 .chevron {
-  font-size: 18px;
+  font-size: 20px;
+  padding: 4px;
   cursor: pointer;
 }
 
 .subtasks {
   margin-top: 12px;
-  padding-left: 28px;
+  padding-left: 32px;
   display: none;
 }
 
 .subtask {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 input[type="checkbox"] {
   width: 22px;
   height: 22px;
+}
+
+.add-subtask {
+  margin-left: 6px;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: none;
+  background: #eee;
 }
 
 #addTaskBtn {
@@ -71,9 +82,9 @@ input[type="checkbox"] {
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
-  padding: 16px;
+  padding: 18px;
   font-size: 18px;
-  border-radius: 16px;
+  border-radius: 18px;
   border: none;
   background: black;
   color: white;
