@@ -1,13 +1,4 @@
-let tasks = JSON.parse(localStorage.getItem("tasks")) || [
-  {
-    id: 1,
-    title: "Go shopping",
-    done: false,
-    subtasks: []
-  }
-];
-
-// 🔒 UI STATE (important fix)
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 let expandedTasks = new Set();
 
 function save() {
@@ -45,11 +36,10 @@ function render() {
     header.appendChild(checkbox);
     header.appendChild(title);
 
-    // Chevron
     let chevron;
     let subtasksEl;
 
-    if (task.subtasks.length) {
+    if (task.subtasks.length > 0) {
       chevron = document.createElement("div");
       chevron.className = "chevron";
       chevron.textContent = "›";
@@ -69,8 +59,9 @@ function render() {
       header.appendChild(chevron);
     }
 
-    // ➕ Add subtask (temporary UX)
+    // Add subtask button (temporary UX)
     const addSub = document.createElement("button");
+    addSub.className = "add-subtask";
     addSub.textContent = "+ subtask";
     addSub.onclick = () => {
       const text = prompt("Subtask");
@@ -82,7 +73,7 @@ function render() {
         done: false
       });
 
-      expandedTasks.add(task.id); // keep open
+      expandedTasks.add(task.id);
       save();
       render();
     };
@@ -104,10 +95,8 @@ function render() {
       subCheck.onchange = () => {
         sub.done = subCheck.checked;
 
-        // 🔒 keep expanded while interacting
         expandedTasks.add(task.id);
 
-        // auto-complete main task
         task.done =
           task.subtasks.length > 0 &&
           task.subtasks.every(s => s.done);
@@ -124,14 +113,13 @@ function render() {
       subtasksEl.appendChild(subEl);
     });
 
-    // Restore expanded state
     if (expandedTasks.has(task.id)) {
       subtasksEl.style.display = "block";
       if (chevron) chevron.textContent = "⌄";
     }
 
     taskEl.appendChild(header);
-    if (task.subtasks.length) taskEl.appendChild(subtasksEl);
+    if (task.subtasks.length > 0) taskEl.appendChild(subtasksEl);
 
     list.appendChild(taskEl);
   });
