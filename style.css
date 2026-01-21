@@ -17,6 +17,7 @@ header {
 
 #taskList {
   padding: 12px;
+  padding-bottom: 120px; /* prevents overlap with button */
 }
 
 .task {
@@ -76,8 +77,4 @@ input[type="checkbox"] {
   border: none;
   background: black;
   color: white;
-}
-#taskList {
-  padding: 12px;
-  padding-bottom: 120px; /* FIX: space for floating button */
 }
