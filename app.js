@@ -3,10 +3,7 @@ let tasks = JSON.parse(localStorage.getItem("tasks")) || [
     id: 1,
     title: "Go shopping",
     done: false,
-    subtasks: [
-      { id: 1, title: "Milk", done: false },
-      { id: 2, title: "Bread", done: false }
-    ]
+    subtasks: []
   }
 ];
 
@@ -18,7 +15,10 @@ function render() {
   const list = document.getElementById("taskList");
   list.innerHTML = "";
 
-  tasks.forEach(task => {
+  // ✅ FIX: open tasks first, completed at bottom
+  const sortedTasks = [...tasks].sort((a, b) => a.done - b.done);
+
+  sortedTasks.forEach(task => {
     const taskEl = document.createElement("div");
     taskEl.className = "task" + (task.done ? " done" : "");
 
@@ -55,39 +55,60 @@ function render() {
       };
 
       header.appendChild(chevron);
-
-      subtasksEl = document.createElement("div");
-      subtasksEl.className = "subtasks";
-
-      task.subtasks.forEach(sub => {
-        const subEl = document.createElement("div");
-        subEl.className = "subtask";
-
-        const subCheck = document.createElement("input");
-        subCheck.type = "checkbox";
-        subCheck.checked = sub.done;
-
-        subCheck.onchange = () => {
-          sub.done = subCheck.checked;
-
-          // auto-complete main task
-          task.done = task.subtasks.every(s => s.done);
-
-          save();
-          render();
-        };
-
-        const subTitle = document.createElement("span");
-        subTitle.textContent = sub.title;
-
-        subEl.appendChild(subCheck);
-        subEl.appendChild(subTitle);
-        subtasksEl.appendChild(subEl);
-      });
     }
 
+    // ➕ Add subtask (minimal)
+    const addSub = document.createElement("button");
+    addSub.textContent = "+ subtask";
+    addSub.style.marginLeft = "8px";
+    addSub.onclick = () => {
+      const text = prompt("Subtask");
+      if (!text) return;
+
+      task.subtasks.push({
+        id: Date.now(),
+        title: text,
+        done: false
+      });
+
+      save();
+      render();
+    };
+
+    header.appendChild(addSub);
+
+    subtasksEl = document.createElement("div");
+    subtasksEl.className = "subtasks";
+
+    task.subtasks.forEach(sub => {
+      const subEl = document.createElement("div");
+      subEl.className = "subtask";
+
+      const subCheck = document.createElement("input");
+      subCheck.type = "checkbox";
+      subCheck.checked = sub.done;
+
+      subCheck.onchange = () => {
+        sub.done = subCheck.checked;
+
+        // ✅ auto-complete main task
+        task.done = task.subtasks.length > 0 &&
+                    task.subtasks.every(s => s.done);
+
+        save();
+        render();
+      };
+
+      const subTitle = document.createElement("span");
+      subTitle.textContent = sub.title;
+
+      subEl.appendChild(subCheck);
+      subEl.appendChild(subTitle);
+      subtasksEl.appendChild(subEl);
+    });
+
     taskEl.appendChild(header);
-    if (subtasksEl) taskEl.appendChild(subtasksEl);
+    if (task.subtasks.length) taskEl.appendChild(subtasksEl);
 
     list.appendChild(taskEl);
   });
