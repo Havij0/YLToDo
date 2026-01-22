@@ -1,9 +1,10 @@
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 let expandedTasks = new Set();
+let editingTask = null;
 
-// Modal state
-let modalTask = null;
-let editingSubtaskIndex = null;
+const modal = document.getElementById("modal");
+const titleInput = document.getElementById("taskTitleInput");
+const subtaskEditor = document.getElementById("subtaskEditor");
 
 function save() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -13,155 +14,138 @@ function render() {
   const list = document.getElementById("taskList");
   list.innerHTML = "";
 
-  const sortedTasks = [...tasks].sort((a,b)=>a.done - b.done);
+  const sorted = [...tasks].sort((a,b) => a.done - b.done);
 
-  sortedTasks.forEach((task, idx) => {
-    const taskEl = document.createElement("div");
-    taskEl.className = "task" + (task.done ? " done" : "");
+  sorted.forEach(task => {
+    const el = document.createElement("div");
+    el.className = "task" + (task.done ? " done" : "");
 
     const header = document.createElement("div");
     header.className = "task-header";
 
-    // Checkbox
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = task.done;
-    checkbox.onchange = () => {
-      task.done = checkbox.checked;
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = task.done;
+    cb.onchange = () => {
+      task.done = cb.checked;
+      if (task.done) expandedTasks.delete(task.id);
       save();
       render();
     };
-    header.appendChild(checkbox);
 
-    // Title
     const title = document.createElement("div");
     title.className = "task-title";
     title.textContent = task.title;
+
+    header.appendChild(cb);
     header.appendChild(title);
 
-    // Chevron
-    let chevron, subtasksEl;
-    if(task.subtasks.length>0){
-      chevron = document.createElement("div");
-      chevron.className = "chevron";
-      chevron.textContent = "›";
+    let subtasksEl;
 
-      chevron.onclick = () => {
-        if(expandedTasks.has(task.id)){
-          expandedTasks.delete(task.id);
-          subtasksEl.style.display="none";
-          chevron.textContent="›";
-        }else{
-          expandedTasks.add(task.id);
-          subtasksEl.style.display="block";
-          chevron.textContent="⌄";
-        }
+    if (task.subtasks.length) {
+      const chev = document.createElement("div");
+      chev.className = "chevron";
+      chev.textContent = expandedTasks.has(task.id) ? "⌄" : "›";
+      chev.onclick = () => {
+        expandedTasks.has(task.id)
+          ? expandedTasks.delete(task.id)
+          : expandedTasks.add(task.id);
+        render();
       };
-
-      header.appendChild(chevron);
+      header.appendChild(chev);
     }
 
-    // Menu
-    const menuBtn = document.createElement("div");
-    menuBtn.className="task-menu";
-    menuBtn.textContent="⋯";
-    menuBtn.onclick = () => openModal(task);
-    header.appendChild(menuBtn);
+    const menu = document.createElement("div");
+    menu.className = "menu";
+    menu.textContent = "⋯";
+    menu.onclick = () => openModal(task);
+    header.appendChild(menu);
 
-    // Subtasks container
+    el.appendChild(header);
+
     subtasksEl = document.createElement("div");
-    subtasksEl.className="subtasks";
+    subtasksEl.className = "subtasks";
 
-    task.subtasks.forEach((sub, sidx)=>{
-      const subEl = document.createElement("div");
-      subEl.className="subtask";
+    task.subtasks.forEach(sub => {
+      const s = document.createElement("div");
+      s.className = "subtask";
 
-      const subCheck = document.createElement("input");
-      subCheck.type="checkbox";
-      subCheck.checked=sub.done;
-      subCheck.onchange = ()=>{
-        sub.done=subCheck.checked;
-        expandedTasks.add(task.id);
-        task.done = task.subtasks.length>0 && task.subtasks.every(s=>s.done);
+      const scb = document.createElement("input");
+      scb.type = "checkbox";
+      scb.checked = sub.done;
+      scb.onchange = () => {
+        sub.done = scb.checked;
+        if (task.subtasks.every(st => st.done)) {
+          task.done = true;
+          expandedTasks.delete(task.id);
+        } else {
+          expandedTasks.add(task.id);
+        }
         save();
         render();
       };
-      const subTitle = document.createElement("span");
-      subTitle.textContent=sub.title;
 
-      subEl.appendChild(subCheck);
-      subEl.appendChild(subTitle);
-      subtasksEl.appendChild(subEl);
+      const st = document.createElement("span");
+      st.textContent = sub.title;
+
+      s.appendChild(scb);
+      s.appendChild(st);
+      subtasksEl.appendChild(s);
     });
 
-    if(expandedTasks.has(task.id)){
-      subtasksEl.style.display="block";
-      if(chevron) chevron.textContent="⌄";
-    }
+    if (expandedTasks.has(task.id)) subtasksEl.style.display = "block";
 
-    taskEl.appendChild(header);
-    if(task.subtasks.length>0) taskEl.appendChild(subtasksEl);
-    list.appendChild(taskEl);
+    if (task.subtasks.length) el.appendChild(subtasksEl);
+    list.appendChild(el);
   });
 }
 
-// Modal functions
-const modal=document.getElementById("modal");
-const modalInput=document.getElementById("modalInput");
-const subtaskContainer=document.getElementById("subtaskContainer");
+function openModal(task) {
+  editingTask = task;
+  titleInput.value = task.title;
+  subtaskEditor.innerHTML = "";
 
-function openModal(task){
-  modalTask=task;
-  modalInput.value=task.title;
-  subtaskContainer.innerHTML="";
+  task.subtasks.forEach((s, i) => {
+    const row = document.createElement("div");
+    const input = document.createElement("input");
+    input.value = s.title;
+    input.oninput = () => s.title = input.value;
 
-  task.subtasks.forEach((sub,idx)=>{
-    const div=document.createElement("div");
-    div.style.display="flex"; div.style.gap="6px"; div.style.marginBottom="6px";
-
-    const input=document.createElement("input");
-    input.type="text"; input.value=sub.title; input.style.flex="1";
-    input.oninput=()=>{sub.title=input.value;};
-
-    const del=document.createElement("button");
-    del.textContent="×"; del.onclick=()=>{
-      task.subtasks.splice(idx,1);
-      render();
+    const del = document.createElement("button");
+    del.textContent = "×";
+    del.onclick = () => {
+      task.subtasks.splice(i,1);
       openModal(task);
     };
 
-    div.appendChild(input); div.appendChild(del);
-    subtaskContainer.appendChild(div);
+    row.appendChild(input);
+    row.appendChild(del);
+    subtaskEditor.appendChild(row);
   });
-
-  // Add subtask button
-  const addSub=document.createElement("button");
-  addSub.textContent="+ subtask"; addSub.style.marginTop="6px";
-  addSub.onclick=()=>{
-    task.subtasks.push({id:Date.now(),title:"",done:false});
-    openModal(task);
-  };
-  subtaskContainer.appendChild(addSub);
 
   modal.classList.remove("hidden");
 }
 
-document.getElementById("modalSaveBtn").onclick=()=>{
-  modalTask.title=modalInput.value;
+document.getElementById("addSubtaskBtn").onclick = () => {
+  editingTask.subtasks.push({ id: Date.now(), title: "", done: false });
+  openModal(editingTask);
+};
+
+document.getElementById("saveTaskBtn").onclick = () => {
+  editingTask.title = titleInput.value;
   save();
   modal.classList.add("hidden");
   render();
 };
 
-document.getElementById("modalCancelBtn").onclick=()=>{
+document.getElementById("cancelTaskBtn").onclick = () => {
   modal.classList.add("hidden");
 };
 
-document.getElementById("addTaskBtn").onclick=()=>{
-  const newTask={id:Date.now(),title:"",done:false,subtasks:[]};
-  tasks.push(newTask);
-  save();
-  openModal(newTask);
+document.getElementById("addTaskBtn").onclick = () => {
+  const t = { id: Date.now(), title: "", done: false, subtasks: [] };
+  tasks.push(t);
+  openModal(t);
 };
 
 render();
