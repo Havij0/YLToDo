@@ -15,12 +15,21 @@ body {
 .hidden { display: none; }
 
 header {
-  padding: 16px;
-  font-size: 22px;
-  font-weight: 700;
-  text-align: center;
+  padding: 14px 16px;
+  font-size: 18px;
+  font-weight: 600;
   background: #fff;
   border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header button {
+  font-size: 16px;
+  padding: 6px 10px;
+  border: none;
+  background: none;
 }
 
 #tasks {
@@ -59,11 +68,6 @@ header {
   border-radius: 50%;
 }
 
-.menu {
-  font-size: 22px;
-  padding: 6px 10px;
-}
-
 #addBar {
   position: fixed;
   bottom: 0;
@@ -78,15 +82,15 @@ header {
 
 #addBar input, #addBar select {
   font-size: 16px;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 14px;
   border: 1px solid #ccc;
 }
 
 #addBar button {
-  padding: 12px 16px;
-  font-size: 18px;
-  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 20px;
+  border-radius: 14px;
   border: none;
   background: #000;
   color: #fff;
@@ -110,27 +114,34 @@ header {
 }
 
 .section h3 {
-  margin-top: 0;
-  font-size: 14px;
+  margin: 0 0 8px 0;
+  font-size: 13px;
   color: #666;
 }
 
-.section input, .section textarea, .section select {
+.read-text {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+input, textarea, select {
   width: 100%;
   font-size: 16px;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 14px;
   border: 1px solid #ccc;
 }
+
+textarea { resize: none; }
 
 .subtask {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.subtask input {
+.subtask input[type="checkbox"] {
   transform: scale(1.2);
 }
 
@@ -147,7 +158,11 @@ header {
 
 <!-- TODAY -->
 <div id="today">
-  <header>Today</header>
+  <header>
+    <span>Today</span>
+    <span></span>
+  </header>
+
   <div id="tasks"></div>
 
   <div id="addBar">
@@ -164,23 +179,26 @@ header {
 <!-- DETAILS -->
 <div id="details" class="hidden">
   <header>
-    <button onclick="closeDetails()">←</button>
-    Task
+    <button onclick="closeDetails()">← Back</button>
+    <button id="editBtn" onclick="toggleEdit()">Edit</button>
   </header>
 
   <div class="section">
     <h3>Title</h3>
-    <input id="dTitle" />
+    <div id="vTitle" class="read-text"></div>
+    <input id="eTitle" class="hidden" />
   </div>
 
   <div class="section">
     <h3>Description</h3>
-    <textarea id="dDesc" rows="4"></textarea>
+    <div id="vDesc" class="read-text"></div>
+    <textarea id="eDesc" rows="4" class="hidden"></textarea>
   </div>
 
   <div class="section">
     <h3>Priority</h3>
-    <select id="dPriority">
+    <div id="vPriority" class="read-text"></div>
+    <select id="ePriority" class="hidden">
       <option value="1">Must</option>
       <option value="2">Important</option>
       <option value="3">Normal</option>
@@ -190,14 +208,16 @@ header {
   <div class="section">
     <h3>Subtasks</h3>
     <div id="subtasks"></div>
-    <textarea id="batchSub" placeholder="One subtask per line"></textarea>
-    <button onclick="addSubtasks()">Add subtasks</button>
+
+    <textarea id="batchSub" class="hidden" placeholder="One subtask per line"></textarea>
+    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">Add subtasks</button>
   </div>
 </div>
 
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
 let activeTask = null;
+let editMode = false;
 
 function save() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -221,28 +241,46 @@ function addTask() {
 
 function openDetails(id) {
   activeTask = tasks.find(t => t.id === id);
-  if (!activeTask) return;
-
-  dTitle.value = activeTask.title;
-  dDesc.value = activeTask.desc;
-  dPriority.value = activeTask.priority;
-
-  renderSubtasks();
+  editMode = false;
+  renderDetails();
   today.classList.add("hidden");
   details.classList.remove("hidden");
 }
 
 function closeDetails() {
-  activeTask.title = dTitle.value;
-  activeTask.desc = dDesc.value;
-  activeTask.priority = Number(dPriority.value);
   save();
-  render();
   details.classList.add("hidden");
   today.classList.remove("hidden");
+  render();
 }
 
-function renderSubtasks() {
+function toggleEdit() {
+  editMode = !editMode;
+  editBtn.textContent = editMode ? "Done" : "Edit";
+
+  if (!editMode) {
+    activeTask.title = eTitle.value;
+    activeTask.desc = eDesc.value;
+    activeTask.priority = Number(ePriority.value);
+    save();
+  }
+  renderDetails();
+}
+
+function renderDetails() {
+  vTitle.textContent = activeTask.title;
+  vDesc.textContent = activeTask.desc || "No description";
+  vPriority.textContent =
+    activeTask.priority === 1 ? "Must" :
+    activeTask.priority === 2 ? "Important" : "Normal";
+
+  eTitle.value = activeTask.title;
+  eDesc.value = activeTask.desc;
+  ePriority.value = activeTask.priority;
+
+  [vTitle, vDesc, vPriority].forEach(el => el.classList.toggle("hidden", editMode));
+  [eTitle, eDesc, ePriority, batchSub, addSubBtn].forEach(el => el.classList.toggle("hidden", !editMode));
+
   subtasks.innerHTML = "";
   activeTask.subtasks.forEach((s, i) => {
     const row = document.createElement("div");
@@ -251,27 +289,29 @@ function renderSubtasks() {
     const c = document.createElement("input");
     c.type = "checkbox";
     c.checked = s.done;
-    c.onchange = () => {
-      s.done = c.checked;
-      save();
-    };
+    c.onchange = () => { s.done = c.checked; save(); };
 
-    const t = document.createElement("input");
-    t.value = s.title;
-    t.oninput = () => {
-      s.title = t.value;
-      save();
-    };
+    row.append(c);
 
-    const del = document.createElement("button");
-    del.textContent = "🗑";
-    del.onclick = () => {
-      activeTask.subtasks.splice(i, 1);
-      renderSubtasks();
-      save();
-    };
+    if (editMode) {
+      const t = document.createElement("input");
+      t.value = s.title;
+      t.oninput = () => { s.title = t.value; save(); };
 
-    row.append(c, t, del);
+      const del = document.createElement("button");
+      del.textContent = "🗑";
+      del.onclick = () => {
+        activeTask.subtasks.splice(i, 1);
+        renderDetails();
+        save();
+      };
+      row.append(t, del);
+    } else {
+      const t = document.createElement("div");
+      t.textContent = s.title;
+      row.append(t);
+    }
+
     subtasks.append(row);
   });
 }
@@ -280,7 +320,7 @@ function addSubtasks() {
   const lines = batchSub.value.split("\n").map(l => l.trim()).filter(Boolean);
   lines.forEach(l => activeTask.subtasks.push({ title: l, done: false }));
   batchSub.value = "";
-  renderSubtasks();
+  renderDetails();
   save();
 }
 
