@@ -108,8 +108,22 @@ header {
 .popup-btn:last-child { border-bottom: none; }
 .popup-btn.danger { color: #d70015; }
 
-/* Batch subtask textarea */
-#batchSub {
+/* Batch subtask modal */
+#batchModal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: 16px;
+  display: none;
+  z-index: 100;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+}
+
+#batchModal textarea {
   width: 100%;
   max-height: 150px;
   font-size: 15px;
@@ -117,11 +131,11 @@ header {
   border-radius: 12px;
   border: 1px solid #ccc;
   resize: none;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   overflow-y: auto;
 }
 
-#batchDone {
+#batchModal button {
   padding: 12px;
   border-radius: 12px;
   width: 100%;
@@ -149,11 +163,17 @@ header {
   <button onclick="addTask()">+</button>
 </div>
 
+<!-- Batch subtask modal -->
+<div id="batchModal">
+  <textarea id="batchSub" placeholder="Enter one subtask per line"></textarea>
+  <button id="batchDone">Add all subtasks</button>
+</div>
+
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
 let expanded = new Set();
 let openPopupTask = null;
-let batchModeTask = null;
+let batchTaskId = null;
 
 function save() { localStorage.setItem("tasks", JSON.stringify(tasks)); }
 
@@ -206,12 +226,15 @@ function render() {
     const menu = document.createElement("div");
     menu.className="menu";
     menu.textContent="⋯";
-    menu.onclick = (e)=>{ e.stopPropagation(); if(batchModeTask) batchModeTask=null; openPopupTask=openPopupTask===task.id?null:task.id; render(); };
+    menu.onclick = (e)=>{ 
+      e.stopPropagation(); 
+      openPopupTask = openPopupTask===task.id?null:task.id; 
+      render(); 
+    };
 
     header.append(check,dot,title,chev,menu);
     card.append(header);
 
-    // popup menu right-aligned
     if(openPopupTask===task.id){
       const popup=document.createElement("div");
       popup.className="popup";
@@ -227,43 +250,17 @@ function render() {
         b.className="popup-btn"+(danger?" danger":"");
         b.textContent=txt;
         b.onclick=()=>{
-          fn();
-          openPopupTask=null;
-          save(); render();
+          fn(); openPopupTask=null; render();
         };
         return b;
       };
 
       popup.append(
-        mk("✏️ Edit",()=>{ const t=prompt("Edit task",task.title); if(t) task.title=t; }),
-        mk("➕ Add subtasks",()=>{ batchModeTask=task.id; }),
-        mk("🗑 Delete",()=>{ tasks=tasks.filter(t=>t.id!==task.id); },true)
+        mk("✏️ Edit",()=>{ const t=prompt("Edit task",task.title); if(t) task.title=t; save(); }),
+        mk("➕ Add subtasks",()=>{ batchTaskId=task.id; document.getElementById("batchModal").style.display="block"; }),
+        mk("🗑 Delete",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); },true)
       );
       card.append(popup);
-    }
-
-    // **Final batch input outside popup**
-    if(batchModeTask===task.id){
-      const batchDiv=document.createElement("div");
-      batchDiv.style.marginTop="12px";
-
-      const ta=document.createElement("textarea");
-      ta.id="batchSub";
-      ta.placeholder="Enter one subtask per line";
-
-      const doneBtn=document.createElement("button");
-      doneBtn.id="batchDone";
-      doneBtn.textContent="Add all subtasks";
-      doneBtn.onclick=()=>{
-        const lines = ta.value.split("\n").map(l=>l.trim()).filter(l=>l);
-        lines.forEach(l=>task.subtasks.push({title:l, done:false}));
-        expanded.add(task.id);
-        batchModeTask=null;
-        save(); render();
-      };
-
-      batchDiv.append(ta, doneBtn);
-      card.append(batchDiv);
     }
 
     if(task.subtasks.length){
@@ -294,13 +291,30 @@ function render() {
   });
 }
 
-document.body.onclick=()=>{
-  if(openPopupTask || batchModeTask){
-    openPopupTask=null;
-    batchModeTask=null;
-    render();
+// Batch modal logic
+const batchModal = document.getElementById("batchModal");
+const batchDone = document.getElementById("batchDone");
+batchDone.onclick = ()=>{
+  const text = document.getElementById("batchSub").value.trim();
+  if(!text) return;
+  const lines = text.split("\n").map(l=>l.trim()).filter(l=>l);
+  const task = tasks.find(t=>t.id===batchTaskId);
+  if(task) {
+    lines.forEach(l=>task.subtasks.push({title:l, done:false}));
+    expanded.add(task.id);
   }
+  document.getElementById("batchSub").value="";
+  batchTaskId=null;
+  batchModal.style.display="none";
+  save(); render();
 };
+
+document.body.onclick=()=>{
+  if(openPopupTask) { openPopupTask=null; render(); }
+};
+
+// Prevent clicks inside modal from closing
+batchModal.onclick = (e)=>{ e.stopPropagation(); };
 
 render();
 </script>
