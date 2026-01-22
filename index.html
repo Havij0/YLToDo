@@ -10,7 +10,7 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; backgr
 header { padding:14px 16px; font-size:18px; font-weight:600; background:#fff; border-bottom:1px solid #ddd; display:flex; align-items:center; justify-content:space-between; }
 header button { font-size:16px; padding:6px 12px; border:none; background:none; cursor:pointer; }
 #tasks { padding:12px; padding-bottom:120px; }
-.task { background:#fff; border-radius:16px; margin-bottom:12px; overflow:hidden; position:relative; touch-action: pan-y; transition: background 0.2s, transform 0.2s; }
+.task { background:#fff; border-radius:16px; margin-bottom:12px; overflow:hidden; position:relative; touch-action: pan-y; transition: transform 0.2s ease, opacity 0.2s; }
 .task.done { opacity:0.5; }
 .task-row { display:flex; align-items:center; min-height:48px; padding:0 12px; background:#fff; position:relative; z-index:2; }
 .task-left { width:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -20,8 +20,8 @@ header button { font-size:16px; padding:6px 12px; border:none; background:none; 
 .task-title { font-size:16px; font-weight:600; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .dot { width:12px; height:12px; border-radius:50%; }
 .chevron { font-size:16px; cursor:pointer; transition:transform 0.2s; }
-.swipe-bg { position:absolute; inset:0; border-radius:16px; display:flex; justify-content:flex-end; align-items:center; padding:0 8px; z-index:1; }
-.swipe-btn { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-left:8px; color:#fff; font-size:18px; }
+.swipe-bg { position:absolute; inset:0; border-radius:16px; display:flex; justify-content:flex-end; align-items:center; padding:0 8px; z-index:1; pointer-events:none; }
+.swipe-btn { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-left:8px; color:#fff; font-size:18px; pointer-events:auto; }
 #addBar { position:fixed; bottom:0; left:0; right:0; background:#fff; padding:12px; display:flex; gap:8px; border-top:1px solid #ddd; }
 #addBar input, #addBar select { font-size:16px; padding:14px; border-radius:14px; border:1px solid #ccc; }
 #addBar button { padding:14px 18px; font-size:20px; border-radius:14px; border:none; background:#000; color:#fff; }
@@ -107,21 +107,21 @@ let activeTask = null, editMode=false;
 function save(){ localStorage.setItem("tasks",JSON.stringify(tasks)); }
 function formatDate(ts){
   const d=new Date(ts);
-  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+
-         " "+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+" "+
+         d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 }
 
 // --- TASK CRUD ---
 function addTask(){
   const title=newTitle.value.trim(); if(!title) return;
   const now=Date.now();
-  tasks.push({id:now,title,desc:"",priority:Number(newPriority.value),done:false,subtasks:[],createdAt:now,lastEdited:now});
+  tasks.push({id:now,title,desc:"",priority:Number(newPriority.value),done:false,subtasks:[],createdAt:now,lastEdited:now,expanded:false});
   newTitle.value=""; save(); render();
 }
 
 function openDetails(id){
   activeTask = tasks.find(t=>t.id===id);
-  editMode=false; activeTask.expanded = activeTask.expanded||false;
+  editMode=false;
   renderDetails(); today.classList.add("hidden"); details.classList.remove("hidden");
 }
 
@@ -143,7 +143,7 @@ function toggleEdit(){
 
 function deleteTask(){
   if(!confirm("Are you sure?")) return;
-  tasks=tasks.filter(t=>t.id!==activeTask.id);
+  tasks = tasks.filter(t=>t.id!==activeTask.id);
   activeTask=null; save(); closeDetails();
 }
 
@@ -169,7 +169,12 @@ function renderDetails(){
     const right=document.createElement("div"); right.className="subtask-right";
 
     const c=document.createElement("input"); c.type="checkbox"; c.checked=s.done;
-    c.onchange=(e)=>{ s.done=c.checked; save(); e.stopPropagation(); };
+    c.onchange=(e)=>{
+      s.done=c.checked;
+      if(activeTask.subtasks.every(st=>st.done)) activeTask.done=true;
+      else activeTask.done=false;
+      activeTask.lastEdited=Date.now(); save(); renderDetails(); e.stopPropagation();
+    };
     left.append(c);
 
     if(editMode){
@@ -261,7 +266,9 @@ function render(){
         const m=document.createElement("div"); m.className="subtask-middle";
         const r=document.createElement("div"); r.className="subtask-right";
         const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=s.done;
-        cb.onchange=e=>{ s.done=cb.checked; save(); e.stopPropagation(); };
+        cb.onchange=e=>{ s.done=cb.checked; 
+          if(task.subtasks.every(st=>st.done)) task.done=true; else task.done=false; 
+          save(); render(); e.stopPropagation(); };
         l.append(cb); m.textContent=s.title; sub.append(l,m,r); tasksDiv.append(sub);
       });
     }
