@@ -65,7 +65,7 @@ header button {
 
 .dot { width: 12px; height: 12px; border-radius: 50%; }
 
-/* Swipe background */
+/* Swipe buttons behind the row */
 .swipe-bg {
   position:absolute;
   inset:0;
@@ -75,13 +75,13 @@ header button {
   align-items:center;
   padding:0 8px;
   z-index:1;
+  gap:8px;
 }
 
-/* Swipe buttons */
 .swipe-btn {
   width:44px; height:44px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
-  margin-left:8px; color:#fff; font-size:18px;
+  color:#fff; font-size:18px; flex-shrink:0;
 }
 
 /* Add bar */
@@ -288,34 +288,41 @@ function addSubtasks(){
   batchSub.value=""; renderDetails(); save();
 }
 
-// Swipe logic with icons
+// Swipe logic
 function attachSwipe(taskRow, task){
   let startX=0, currentX=0, moving=false;
-  const threshold=80;
+  const swipeWidth=3*52; // space for 3 buttons
 
-  // Clear previous bg
+  // Remove old bg
   taskRow.querySelectorAll(".swipe-bg").forEach(el=>el.remove());
+  const bg=document.createElement("div"); bg.className="swipe-bg";
+  taskRow.prepend(bg);
 
-  const bg=document.createElement("div"); bg.className="swipe-bg"; taskRow.prepend(bg);
-
+  // Buttons
   const createButton=(icon,bgColor,action)=>{
     const btn=document.createElement("div"); btn.className="swipe-btn"; btn.textContent=icon;
-    btn.style.background=bgColor; btn.onclick=(e)=>{ e.stopPropagation(); action(); };
+    btn.style.background=bgColor; btn.onclick=(e)=>{ e.stopPropagation(); action(); taskRow.style.transform=""; };
     bg.append(btn); return btn;
   };
-
-  const editBtn=createButton("✏️","#007AFF",()=>openDetails(task.id));
-  const rescheduleBtn=createButton("📅","#FF9500",()=>openDetails(task.id));
-  const deleteBtn=createButton("🗑️","#FF3B30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); });
+  createButton("✏️","#007AFF",()=>openDetails(task.id));
+  createButton("📅","#FF9500",()=>openDetails(task.id));
+  createButton("🗑️","#FF3B30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); });
 
   taskRow.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; moving=true; });
   taskRow.addEventListener("touchmove", e=>{
     if(!moving) return;
     currentX=e.touches[0].clientX;
     let deltaX=currentX-startX;
+    if(deltaX<0) deltaX=Math.max(deltaX,-swipeWidth); // limit left swipe
+    if(deltaX>0) deltaX=Math.min(deltaX,80); // limit right swipe
     taskRow.style.transform=`translateX(${deltaX}px)`;
   });
-  taskRow.addEventListener("touchend", e=>{ moving=false; taskRow.style.transform=""; });
+  taskRow.addEventListener("touchend", e=>{
+    moving=false;
+    let deltaX=currentX-startX;
+    if(deltaX>80){ task.done=!task.done; save(); render(); }
+    taskRow.style.transform="";
+  });
 }
 
 function render(){
