@@ -50,10 +50,10 @@ header button {
   align-items: center;
   min-height: 48px;
   padding: 0 12px;
-  transition: transform 0.2s ease;
   background:#fff;
   position: relative;
   z-index:2;
+  transition: transform 0.2s ease;
 }
 
 .task-left { width: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -76,10 +76,11 @@ header button {
   padding:0 8px;
   z-index:1;
   gap:8px;
+  overflow: hidden;
 }
 
 .swipe-btn {
-  width:44px; height:44px; border-radius:12px;
+  width:52px; height:44px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
   color:#fff; font-size:18px; flex-shrink:0;
 }
@@ -288,40 +289,40 @@ function addSubtasks(){
   batchSub.value=""; renderDetails(); save();
 }
 
-// Swipe logic
+// Proper swipe implementation
 function attachSwipe(taskRow, task){
-  let startX=0, currentX=0, moving=false;
-  const swipeWidth=3*52; // space for 3 buttons
+  let startX=0, currentX=0, moving=false, offset=0;
+  const btnWidth=52*3; // total width for 3 buttons
+  const threshold=btnWidth/2;
 
-  // Remove old bg
-  taskRow.querySelectorAll(".swipe-bg").forEach(el=>el.remove());
   const bg=document.createElement("div"); bg.className="swipe-bg";
-  taskRow.prepend(bg);
+  const editBtn=document.createElement("div"); editBtn.className="swipe-btn"; editBtn.textContent="✏️"; editBtn.style.background="#007AFF";
+  const resBtn=document.createElement("div"); resBtn.className="swipe-btn"; resBtn.textContent="📅"; resBtn.style.background="#FF9500";
+  const delBtn=document.createElement("div"); delBtn.className="swipe-btn"; delBtn.textContent="🗑️"; delBtn.style.background="#FF3B30";
+  bg.append(editBtn,resBtn,delBtn); taskRow.prepend(bg);
 
-  // Buttons
-  const createButton=(icon,bgColor,action)=>{
-    const btn=document.createElement("div"); btn.className="swipe-btn"; btn.textContent=icon;
-    btn.style.background=bgColor; btn.onclick=(e)=>{ e.stopPropagation(); action(); taskRow.style.transform=""; };
-    bg.append(btn); return btn;
-  };
-  createButton("✏️","#007AFF",()=>openDetails(task.id));
-  createButton("📅","#FF9500",()=>openDetails(task.id));
-  createButton("🗑️","#FF3B30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); });
+  const resetRow=()=>{ taskRow.style.transition="transform 0.2s"; taskRow.style.transform=""; setTimeout(()=>taskRow.style.transition="",200); };
 
-  taskRow.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; moving=true; });
-  taskRow.addEventListener("touchmove", e=>{
+  editBtn.onclick=(e)=>{ e.stopPropagation(); openDetails(task.id); resetRow(); };
+  resBtn.onclick=(e)=>{ e.stopPropagation(); openDetails(task.id); resetRow(); };
+  delBtn.onclick=(e)=>{ e.stopPropagation(); tasks=tasks.filter(t=>t.id!==task.id); save(); render(); };
+
+  taskRow.addEventListener("touchstart",e=>{ startX=e.touches[0].clientX; moving=true; });
+  taskRow.addEventListener("touchmove",e=>{
     if(!moving) return;
     currentX=e.touches[0].clientX;
-    let deltaX=currentX-startX;
-    if(deltaX<0) deltaX=Math.max(deltaX,-swipeWidth); // limit left swipe
-    if(deltaX>0) deltaX=Math.min(deltaX,80); // limit right swipe
-    taskRow.style.transform=`translateX(${deltaX}px)`;
+    let dx=currentX-startX + offset;
+    dx=Math.min(0,dx); // only left swipe
+    dx=Math.max(-btnWidth,dx);
+    taskRow.style.transform=`translateX(${dx}px)`;
   });
-  taskRow.addEventListener("touchend", e=>{
+  taskRow.addEventListener("touchend",e=>{
     moving=false;
-    let deltaX=currentX-startX;
-    if(deltaX>80){ task.done=!task.done; save(); render(); }
-    taskRow.style.transform="";
+    let dx=currentX-startX + offset;
+    if(dx<-threshold) offset=-btnWidth; else offset=0;
+    taskRow.style.transition="transform 0.2s";
+    taskRow.style.transform=`translateX(${offset}px)`;
+    setTimeout(()=>taskRow.style.transition="",200);
   });
 }
 
