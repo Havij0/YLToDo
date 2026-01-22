@@ -192,20 +192,31 @@ function addSubtasks(){
 // --- TODAY TAB SWIPE ---
 function attachSwipe(taskRow,task){
   let startX=0,currentX=0,moving=false; const threshold=50;
+  // remove previous bg
   taskRow.querySelectorAll(".swipe-bg").forEach(el=>el.remove());
   const bg=document.createElement("div"); bg.className="swipe-bg"; taskRow.prepend(bg);
 
-  const createBtn=(icon,bgColor,action)=>{ const btn=document.createElement("div"); btn.className="swipe-btn"; btn.textContent=icon; btn.style.background=bgColor; btn.onclick=e=>{e.stopPropagation();action();}; bg.append(btn); return btn; };
+  const createBtn=(icon,bgColor,action)=>{
+    const btn=document.createElement("div"); btn.className="swipe-btn"; btn.textContent=icon; btn.style.background=bgColor; btn.onclick=e=>{e.stopPropagation();action();}; bg.append(btn); return btn;
+  };
   const editBtn=createBtn("✏️","#007AFF",()=>openDetails(task.id));
-  const rescheduleBtn=createBtn("📅","#FF9500",()=>alert("Reschedule")); 
+  const rescheduleBtn=createBtn("📅","#FF9500",()=>alert("Reschedule"));
   const deleteBtn=createBtn("🗑️","#FF3B30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); });
 
-  // TOUCH SWIPE
   taskRow.addEventListener("touchstart",e=>{ startX=e.touches[0].clientX; moving=true; });
-  taskRow.addEventListener("touchmove",e=>{ if(!moving) return; currentX=e.touches[0].clientX; const deltaX=currentX-startX;
-    if(deltaX>0) taskRow.style.transform=`translateX(${Math.min(deltaX,80)}px)`; else taskRow.style.transform=`translateX(${Math.max(deltaX,-120)}px)`; });
-  taskRow.addEventListener("touchend",e=>{ moving=false; const deltaX=currentX-startX;
-    if(deltaX>threshold){ task.done=!task.done; save(); render(); } taskRow.style.transform=""; });
+  taskRow.addEventListener("touchmove",e=>{
+    if(!moving) return;
+    currentX=e.touches[0].clientX;
+    const deltaX=currentX-startX;
+    if(deltaX>0) taskRow.style.transform=`translateX(${Math.min(deltaX,80)}px)`; 
+    else taskRow.style.transform=`translateX(${Math.max(deltaX,-120)}px)`;
+  });
+  taskRow.addEventListener("touchend",e=>{
+    moving=false;
+    const deltaX=currentX-startX;
+    if(deltaX>threshold){ task.done=!task.done; save(); render(); }
+    taskRow.style.transform="";
+  });
 }
 
 // --- RENDER ---
@@ -235,6 +246,10 @@ function render(){
 }
 
 render();
+
+// --- NOTE ---
+// If the browser shows old version, do a "hard refresh" (Ctrl+F5 or Cmd+Shift+R)
+// or enable "Disable cache" in DevTools while testing.
 </script>
 </body>
 </html>
