@@ -80,9 +80,9 @@ header {
 .task-right { width:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
 .task-row input[type="checkbox"] { width:22px; height:22px; margin:0; }
-.task-title { font-size:16px; font-weight:600; cursor:pointer; }
+.task-title { font-size:16px; font-weight:600; cursor:pointer; 
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Improved priority dots/logos */
 .dot {
   width:16px;
   height:16px;
@@ -101,7 +101,7 @@ header {
 #addBar input, #addBar select { font-size:16px; padding:14px; border-radius:14px; border:1px solid #ccc; }
 #addBar button { padding:14px 18px; font-size:20px; border-radius:14px; border:none; background:#000; color:#fff; }
 
-/* Delete button design */
+/* Delete button */
 #deleteTaskBtn {
   width: calc(100% - 24px);
   margin: 12px auto;
@@ -205,7 +205,7 @@ function attachSwipe(row, task){
   bg.append(editBtn,resBtn,delBtn);
   row.parentElement.prepend(bg);
 
-  const resetRow=()=>{ row.style.transition="transform 0.2s ease, opacity 0.2s ease"; row.style.transform="translateX(0)"; row.style.opacity=1; setTimeout(()=>row.style.transition="",200); };
+  const resetRow=()=>{ row.style.transition="transform 0.2s ease, opacity 0.2s ease"; row.style.transform=`translateX(-${btnWidth}px)`; row.style.opacity=0.3; setTimeout(()=>row.style.transition="",200); };
 
   editBtn.onclick=(e)=>{ e.stopPropagation(); openDetails(task.id); resetRow(); };
   resBtn.onclick=(e)=>{ e.stopPropagation(); alert("Reschedule "+task.title); resetRow(); };
@@ -218,7 +218,7 @@ function attachSwipe(row, task){
     let dx=currentX-startX+offset;
     dx=Math.min(0,dx); dx=Math.max(-btnWidth,dx);
     row.style.transform=`translateX(${dx}px)`;
-    row.style.opacity = 1 + dx/btnWidth*0.7; // stronger fade
+    row.style.opacity = 1 + dx/btnWidth*0.7;
   });
   row.addEventListener("touchend", e=>{
     moving=false;
