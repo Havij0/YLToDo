@@ -271,6 +271,8 @@ function render() {
     const chev = document.createElement("div");
     chev.className = "chevron";
     chev.textContent = expanded.has(task.id) ? "⌄" : "›";
+    // show chevron only if task has subtasks
+    if(task.subtasks.length === 0) chev.style.visibility = "hidden";
     chev.onclick = () => {
       expanded.has(task.id) ? expanded.delete(task.id) : expanded.add(task.id);
       render();
@@ -293,7 +295,7 @@ function render() {
       const popup = document.createElement("div");
       popup.className = "popup";
 
-      // dynamic popup positioning
+      // dynamic popup placement
       const rect = card.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       popup.style.top = spaceBelow < 160 ? (-160)+"px" : "100%";
@@ -328,6 +330,7 @@ function render() {
       card.append(popup);
     }
 
+    // BATCH SUBTASK INPUT rendered outside popup
     if (batchModeTask === task.id) {
       const batchDiv = document.createElement("div");
       batchDiv.style.marginTop = "12px";
