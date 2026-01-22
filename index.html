@@ -211,17 +211,20 @@ function formatDate(ts){
 }
 
 function renderDetails(){
-  vTitle.textContent = activeTask.title; vDesc.textContent = activeTask.desc||"No description";
+  vTitle.textContent = activeTask.title; 
+  vDesc.textContent = activeTask.desc||"No description";
   vPriority.textContent = activeTask.priority===1?"Must":activeTask.priority===2?"Important":"Normal";
   timestamps.innerHTML = `Created: ${formatDate(activeTask.createdAt)}<br>Last edited: ${formatDate(activeTask.lastEdited)}`;
 
   eTitle.value = activeTask.title; eDesc.value = activeTask.desc; ePriority.value = activeTask.priority;
 
+  // Hide/show read vs edit fields
   [vTitle,vDesc,vPriority,timestamps].forEach(el=>el.classList.toggle("hidden",editMode));
   [eTitle,eDesc,ePriority,batchSub,addSubBtn].forEach(el=>el.classList.toggle("hidden",!editMode));
 
-  // Show subtasks section only in edit mode
-  subtasksSection.style.display = editMode ? "block" : "none";
+  // Subtasks logic
+  // Show in edit mode always, in view mode only if task has subtasks
+  subtasksSection.style.display = (editMode || activeTask.subtasks.length>0) ? "block" : "none";
 
   subtasks.innerHTML="";
   activeTask.subtasks.forEach((s,i)=>{
