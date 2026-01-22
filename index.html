@@ -3,67 +3,65 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Today</title>
+<title>Todo</title>
 
 <style>
-:root {
-  --must: #ff3b30;
-  --important: #ff9500;
-  --normal: #ffcc00;
-  --bg: #f5f5f7;
-  --card: #ffffff;
-  --text: #1c1c1e;
-}
-
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background: #f2f2f7;
 }
+
+.hidden { display: none; }
 
 header {
   padding: 16px;
   font-size: 22px;
   font-weight: 700;
   text-align: center;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
 }
 
-#tasks { padding: 12px; }
+#tasks {
+  padding: 12px;
+  padding-bottom: 120px;
+}
 
 .task {
-  background: var(--card);
+  background: #fff;
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
-  position: relative;
 }
 
 .task.done { opacity: 0.5; }
 
-.task-header {
+.task-row {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.task-header input { transform: scale(1.3); }
-.task-title { flex: 1; font-size: 16px; font-weight: 600; }
-
-.chevron, .menu {
-  font-size: 22px;
-  padding: 6px 10px;
-  cursor: pointer;
+.task-row input {
+  transform: scale(1.3);
 }
 
-.subtasks { margin-top: 12px; padding-left: 34px; display: none; }
-.subtask { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.subtask input { transform: scale(1.2); }
+.task-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+}
 
-.priority-dot {
+.dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+}
+
+.menu {
+  font-size: 22px;
+  padding: 6px 10px;
 }
 
 #addBar {
@@ -71,250 +69,258 @@ header {
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--card);
+  background: #fff;
   padding: 12px;
   display: flex;
   gap: 8px;
   border-top: 1px solid #ddd;
 }
 
-#addBar input, #addBar select { font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid #ccc; }
-#addBar button { padding: 12px 16px; font-size: 18px; border-radius: 12px; border: none; background: black; color: white; }
-
-.footer-space { height: 100px; }
-
-/* Popup menu */
-.popup {
-  position: absolute;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.18);
-  overflow: hidden;
-  z-index: 10;
-  animation: slideDown 0.15s ease-out;
-}
-
-@keyframes slideDown {
-  from { transform: translateY(-10px); opacity:0 }
-  to { transform: translateY(0); opacity:1 }
-}
-
-.popup-btn {
-  padding: 14px 16px;
-  font-size: 15px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-.popup-btn:last-child { border-bottom: none; }
-.popup-btn.danger { color: #d70015; }
-
-/* Batch subtask modal */
-#batchModal {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--card);
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  padding: 16px;
-  display: none;
-  z-index: 100;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
-}
-
-#batchModal textarea {
-  width: 100%;
-  max-height: 150px;
-  font-size: 15px;
-  padding: 10px;
+#addBar input, #addBar select {
+  font-size: 16px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid #ccc;
-  resize: none;
-  margin-bottom: 12px;
+}
+
+#addBar button {
+  padding: 12px 16px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+  background: #000;
+  color: #fff;
+}
+
+/* DETAILS VIEW */
+
+#details {
+  position: fixed;
+  inset: 0;
+  background: #f2f2f7;
+  z-index: 50;
   overflow-y: auto;
 }
 
-#batchModal button {
+.section {
+  background: #fff;
+  margin: 12px;
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.section h3 {
+  margin-top: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.section input, .section textarea, .section select {
+  width: 100%;
+  font-size: 16px;
   padding: 12px;
   border-radius: 12px;
-  width: 100%;
+  border: 1px solid #ccc;
+}
+
+.subtask {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.subtask input {
+  transform: scale(1.2);
+}
+
+.subtask button {
   border: none;
-  background: black;
-  color: white;
+  background: none;
+  color: red;
   font-size: 16px;
-  cursor: pointer;
 }
 </style>
 </head>
+
 <body>
 
-<header>Today</header>
-<div id="tasks"></div>
-<div class="footer-space"></div>
+<!-- TODAY -->
+<div id="today">
+  <header>Today</header>
+  <div id="tasks"></div>
 
-<div id="addBar">
-  <input id="titleInput" placeholder="New task…" />
-  <select id="priorityInput">
-    <option value="3">Normal</option>
-    <option value="2">Important</option>
-    <option value="1">Must</option>
-  </select>
-  <button onclick="addTask()">+</button>
+  <div id="addBar">
+    <input id="newTitle" placeholder="New task…" />
+    <select id="newPriority">
+      <option value="3">Normal</option>
+      <option value="2">Important</option>
+      <option value="1">Must</option>
+    </select>
+    <button onclick="addTask()">+</button>
+  </div>
 </div>
 
-<!-- Batch subtask modal -->
-<div id="batchModal">
-  <textarea id="batchSub" placeholder="Enter one subtask per line"></textarea>
-  <button id="batchDone">Add all subtasks</button>
+<!-- DETAILS -->
+<div id="details" class="hidden">
+  <header>
+    <button onclick="closeDetails()">←</button>
+    Task
+  </header>
+
+  <div class="section">
+    <h3>Title</h3>
+    <input id="dTitle" />
+  </div>
+
+  <div class="section">
+    <h3>Description</h3>
+    <textarea id="dDesc" rows="4"></textarea>
+  </div>
+
+  <div class="section">
+    <h3>Priority</h3>
+    <select id="dPriority">
+      <option value="1">Must</option>
+      <option value="2">Important</option>
+      <option value="3">Normal</option>
+    </select>
+  </div>
+
+  <div class="section">
+    <h3>Subtasks</h3>
+    <div id="subtasks"></div>
+    <textarea id="batchSub" placeholder="One subtask per line"></textarea>
+    <button onclick="addSubtasks()">Add subtasks</button>
+  </div>
 </div>
 
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
-let expanded = new Set();
-let openPopupTask = null;
-let batchTaskId = null;
+let activeTask = null;
 
-function save() { localStorage.setItem("tasks", JSON.stringify(tasks)); }
-
-function addTask() {
-  const title = titleInput.value.trim();
-  if(!title) return;
-  tasks.push({id:Date.now(), title, priority: Number(priorityInput.value), done:false, subtasks:[]});
-  titleInput.value = "";
-  save(); render();
+function save() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function toggleSub(task, sub) {
-  sub.done = !sub.done;
-  task.done = task.subtasks.length && task.subtasks.every(s => s.done);
-  if(task.done) expanded.delete(task.id);
-  save(); render();
+function addTask() {
+  const title = newTitle.value.trim();
+  if (!title) return;
+  tasks.push({
+    id: Date.now(),
+    title,
+    desc: "",
+    priority: Number(newPriority.value),
+    done: false,
+    subtasks: []
+  });
+  newTitle.value = "";
+  save();
+  render();
+}
+
+function openDetails(id) {
+  activeTask = tasks.find(t => t.id === id);
+  if (!activeTask) return;
+
+  dTitle.value = activeTask.title;
+  dDesc.value = activeTask.desc;
+  dPriority.value = activeTask.priority;
+
+  renderSubtasks();
+  today.classList.add("hidden");
+  details.classList.remove("hidden");
+}
+
+function closeDetails() {
+  activeTask.title = dTitle.value;
+  activeTask.desc = dDesc.value;
+  activeTask.priority = Number(dPriority.value);
+  save();
+  render();
+  details.classList.add("hidden");
+  today.classList.remove("hidden");
+}
+
+function renderSubtasks() {
+  subtasks.innerHTML = "";
+  activeTask.subtasks.forEach((s, i) => {
+    const row = document.createElement("div");
+    row.className = "subtask";
+
+    const c = document.createElement("input");
+    c.type = "checkbox";
+    c.checked = s.done;
+    c.onchange = () => {
+      s.done = c.checked;
+      save();
+    };
+
+    const t = document.createElement("input");
+    t.value = s.title;
+    t.oninput = () => {
+      s.title = t.value;
+      save();
+    };
+
+    const del = document.createElement("button");
+    del.textContent = "🗑";
+    del.onclick = () => {
+      activeTask.subtasks.splice(i, 1);
+      renderSubtasks();
+      save();
+    };
+
+    row.append(c, t, del);
+    subtasks.append(row);
+  });
+}
+
+function addSubtasks() {
+  const lines = batchSub.value.split("\n").map(l => l.trim()).filter(Boolean);
+  lines.forEach(l => activeTask.subtasks.push({ title: l, done: false }));
+  batchSub.value = "";
+  renderSubtasks();
+  save();
 }
 
 function render() {
-  const list = document.getElementById("tasks");
-  list.innerHTML = "";
-  const sorted = [...tasks].sort((a,b)=>a.done-b.done);
+  tasks.sort((a,b) => a.done - b.done);
+  tasksDiv = document.getElementById("tasks");
+  tasksDiv.innerHTML = "";
 
-  sorted.forEach(task => {
+  tasks.forEach(task => {
     const card = document.createElement("div");
     card.className = "task" + (task.done ? " done" : "");
 
-    const header = document.createElement("div");
-    header.className = "task-header";
+    const row = document.createElement("div");
+    row.className = "task-row";
 
-    const check = document.createElement("input");
-    check.type = "checkbox";
-    check.checked = task.done;
-    check.onchange = () => { task.done = check.checked; if(task.done) expanded.delete(task.id); save(); render(); };
+    const c = document.createElement("input");
+    c.type = "checkbox";
+    c.checked = task.done;
+    c.onchange = () => {
+      task.done = c.checked;
+      save();
+      render();
+    };
 
     const dot = document.createElement("div");
-    dot.className = "priority-dot";
-    dot.style.background = task.priority===1 ? "#ff3b30" : task.priority===2 ? "#ff9500" : "#ffcc00";
+    dot.className = "dot";
+    dot.style.background =
+      task.priority === 1 ? "#ff3b30" :
+      task.priority === 2 ? "#ff9500" : "#ffcc00";
 
     const title = document.createElement("div");
     title.className = "task-title";
     title.textContent = task.title;
+    title.onclick = () => openDetails(task.id);
 
-    const chev = document.createElement("div");
-    chev.className = "chevron";
-    chev.textContent = expanded.has(task.id) ? "⌄" : "›";
-    if(task.subtasks.length===0) chev.style.visibility="hidden";
-    chev.onclick = () => { expanded.has(task.id)?expanded.delete(task.id):expanded.add(task.id); render(); };
-
-    const menu = document.createElement("div");
-    menu.className="menu";
-    menu.textContent="⋯";
-    menu.onclick = (e)=>{ 
-      e.stopPropagation(); 
-      openPopupTask = openPopupTask===task.id?null:task.id; 
-      render(); 
-    };
-
-    header.append(check,dot,title,chev,menu);
-    card.append(header);
-
-    if(openPopupTask===task.id){
-      const popup=document.createElement("div");
-      popup.className="popup";
-
-      const rect = card.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      popup.style.top = spaceBelow < 160 ? (-160)+"px" : "100%";
-      popup.style.right = "0px";
-      popup.style.width = "180px";
-
-      const mk = (txt, fn, danger=false)=>{
-        const b=document.createElement("div");
-        b.className="popup-btn"+(danger?" danger":"");
-        b.textContent=txt;
-        b.onclick=()=>{
-          fn(); openPopupTask=null; render();
-        };
-        return b;
-      };
-
-      popup.append(
-        mk("✏️ Edit",()=>{ const t=prompt("Edit task",task.title); if(t) task.title=t; save(); }),
-        mk("➕ Add subtasks",()=>{ batchTaskId=task.id; document.getElementById("batchModal").style.display="block"; }),
-        mk("🗑 Delete",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); },true)
-      );
-      card.append(popup);
-    }
-
-    if(task.subtasks.length){
-      const subs=document.createElement("div");
-      subs.className="subtasks";
-      if(expanded.has(task.id)) subs.style.display="block";
-
-      task.subtasks.forEach(sub=>{
-        const row=document.createElement("div");
-        row.className="subtask";
-
-        const c=document.createElement("input");
-        c.type="checkbox";
-        c.checked=sub.done;
-        c.onchange=()=>toggleSub(task,sub);
-
-        const t=document.createElement("div");
-        t.textContent=sub.title;
-
-        row.append(c,t);
-        subs.append(row);
-      });
-
-      card.append(subs);
-    }
-
-    list.append(card);
+    row.append(c, dot, title);
+    card.append(row);
+    tasksDiv.append(card);
   });
 }
-
-// Batch modal logic
-const batchModal = document.getElementById("batchModal");
-const batchDone = document.getElementById("batchDone");
-batchDone.onclick = ()=>{
-  const text = document.getElementById("batchSub").value.trim();
-  if(!text) return;
-  const lines = text.split("\n").map(l=>l.trim()).filter(l=>l);
-  const task = tasks.find(t=>t.id===batchTaskId);
-  if(task) {
-    lines.forEach(l=>task.subtasks.push({title:l, done:false}));
-    expanded.add(task.id);
-  }
-  document.getElementById("batchSub").value="";
-  batchTaskId=null;
-  batchModal.style.display="none";
-  save(); render();
-};
-
-document.body.onclick=()=>{
-  if(openPopupTask) { openPopupTask=null; render(); }
-};
-
-// Prevent clicks inside modal from closing
-batchModal.onclick = (e)=>{ e.stopPropagation(); };
 
 render();
 </script>
