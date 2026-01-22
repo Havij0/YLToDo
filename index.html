@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Todo</title>
-
 <style>
 body {
   margin: 0;
@@ -34,7 +33,7 @@ header button {
   cursor: pointer;
 }
 
-/* Today Page */
+/* Today page */
 #tasks {
   padding: 12px;
   padding-bottom: 120px;
@@ -43,7 +42,7 @@ header button {
 .task {
   background: #fff;
   border-radius: 16px;
-  padding: 12px 16px;
+  padding: 0;
   margin-bottom: 12px;
 }
 
@@ -53,6 +52,8 @@ header button {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 12px 16px;
+  min-height: 48px;
 }
 
 .task-row input[type="checkbox"] {
@@ -67,13 +68,13 @@ header button {
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-/* Add Bar */
+/* Add bar */
 #addBar {
   position: fixed;
   bottom: 0;
@@ -102,7 +103,7 @@ header button {
   color: #fff;
 }
 
-/* Details Screen */
+/* Details screen */
 #details {
   position: fixed;
   inset: 0;
@@ -146,7 +147,6 @@ textarea { resize: none; }
 .subtask {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
   min-height: 44px;
@@ -155,6 +155,11 @@ textarea { resize: none; }
 .subtask input[type="checkbox"] {
   transform: scale(1.2);
   flex-shrink: 0;
+}
+
+.subtask .text-view {
+  flex: 1;
+  font-size: 16px;
 }
 
 .subtask input[type="text"] {
@@ -170,7 +175,6 @@ textarea { resize: none; }
 }
 </style>
 </head>
-
 <body>
 
 <!-- TODAY -->
@@ -235,138 +239,85 @@ let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
 let activeTask = null;
 let editMode = false;
 
-function save() {
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
+function save() { localStorage.setItem("tasks", JSON.stringify(tasks)); }
 
 function addTask() {
   const title = newTitle.value.trim();
   if (!title) return;
-  tasks.push({
-    id: Date.now(),
-    title,
-    desc: "",
-    priority: Number(newPriority.value),
-    done: false,
-    subtasks: []
-  });
+  tasks.push({ id: Date.now(), title, desc: "", priority: Number(newPriority.value), done: false, subtasks: [] });
   newTitle.value = "";
-  save();
-  render();
+  save(); render();
 }
 
 function openDetails(id) {
-  activeTask = tasks.find(t => t.id === id);
-  editMode = false;
-  renderDetails();
-  today.classList.add("hidden");
-  details.classList.remove("hidden");
+  activeTask = tasks.find(t => t.id===id);
+  editMode = false; renderDetails();
+  today.classList.add("hidden"); details.classList.remove("hidden");
 }
 
-function closeDetails() {
-  save();
-  details.classList.add("hidden");
-  today.classList.remove("hidden");
-  render();
-}
+function closeDetails() { save(); details.classList.add("hidden"); today.classList.remove("hidden"); render(); }
 
 function toggleEdit() {
   editMode = !editMode;
   editBtn.textContent = editMode ? "Done" : "Edit";
-
-  if (!editMode) {
-    activeTask.title = eTitle.value;
-    activeTask.desc = eDesc.value;
-    activeTask.priority = Number(ePriority.value);
-    save();
-  }
+  if(!editMode){ activeTask.title=eTitle.value; activeTask.desc=eDesc.value; activeTask.priority=Number(ePriority.value); save(); }
   renderDetails();
 }
 
-function renderDetails() {
-  vTitle.textContent = activeTask.title;
-  vDesc.textContent = activeTask.desc || "No description";
-  vPriority.textContent =
-    activeTask.priority === 1 ? "Must" :
-    activeTask.priority === 2 ? "Important" : "Normal";
+function renderDetails(){
+  vTitle.textContent=activeTask.title; vDesc.textContent=activeTask.desc||"No description";
+  vPriority.textContent=activeTask.priority===1?"Must":activeTask.priority===2?"Important":"Normal";
 
-  eTitle.value = activeTask.title;
-  eDesc.value = activeTask.desc;
-  ePriority.value = activeTask.priority;
+  eTitle.value=activeTask.title; eDesc.value=activeTask.desc; ePriority.value=activeTask.priority;
 
-  [vTitle, vDesc, vPriority].forEach(el => el.classList.toggle("hidden", editMode));
-  [eTitle, eDesc, ePriority, batchSub, addSubBtn].forEach(el => el.classList.toggle("hidden", !editMode));
+  [vTitle,vDesc,vPriority].forEach(el=>el.classList.toggle("hidden",editMode));
+  [eTitle,eDesc,ePriority,batchSub,addSubBtn].forEach(el=>el.classList.toggle("hidden",!editMode));
 
-  subtasks.innerHTML = "";
-  activeTask.subtasks.forEach((s, i) => {
-    const row = document.createElement("div");
-    row.className = "subtask";
-
-    const c = document.createElement("input");
-    c.type = "checkbox";
-    c.checked = s.done;
-    c.onchange = () => { s.done = c.checked; save(); };
+  subtasks.innerHTML="";
+  activeTask.subtasks.forEach((s,i)=>{
+    const row=document.createElement("div"); row.className="subtask";
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=s.done;
+    c.onchange=()=>{ s.done=c.checked; save(); };
     row.append(c);
 
-    if (editMode) {
-      const t = document.createElement("input");
-      t.type = "text";
-      t.value = s.title;
-      t.oninput = () => { s.title = t.value; save(); };
-      const del = document.createElement("button");
-      del.textContent = "🗑";
-      del.onclick = () => { activeTask.subtasks.splice(i, 1); renderDetails(); save(); };
+    if(editMode){
+      const t=document.createElement("input"); t.type="text"; t.value=s.title;
+      t.oninput=()=>{ s.title=t.value; save(); };
+      const del=document.createElement("button"); del.textContent="🗑";
+      del.onclick=()=>{ activeTask.subtasks.splice(i,1); renderDetails(); save(); };
       row.append(t, del);
     } else {
-      const t = document.createElement("div");
-      t.textContent = s.title;
-      t.style.flex = "1";
-      row.append(t);
+      const t=document.createElement("div"); t.className="text-view"; t.textContent=s.title; row.append(t);
     }
 
     subtasks.append(row);
   });
 }
 
-function addSubtasks() {
-  const lines = batchSub.value.split("\n").map(l => l.trim()).filter(Boolean);
-  lines.forEach(l => activeTask.subtasks.push({ title: l, done: false }));
-  batchSub.value = "";
-  renderDetails();
-  save();
+function addSubtasks(){
+  const lines=batchSub.value.split("\n").map(l=>l.trim()).filter(Boolean);
+  lines.forEach(l=>activeTask.subtasks.push({title:l,done:false}));
+  batchSub.value=""; renderDetails(); save();
 }
 
-function render() {
-  tasks.sort((a,b) => a.done - b.done);
-  tasksDiv = document.getElementById("tasks");
-  tasksDiv.innerHTML = "";
+function render(){
+  tasks.sort((a,b)=>a.done-b.done);
+  const tasksDiv=document.getElementById("tasks"); tasksDiv.innerHTML="";
+  tasks.forEach(task=>{
+    const card=document.createElement("div"); card.className="task"+(task.done?" done":"");
+    const row=document.createElement("div"); row.className="task-row";
 
-  tasks.forEach(task => {
-    const card = document.createElement("div");
-    card.className = "task" + (task.done ? " done" : "");
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=task.done;
+    c.onchange=()=>{ task.done=c.checked; save(); render(); };
 
-    const row = document.createElement("div");
-    row.className = "task-row";
+    const dot=document.createElement("div"); dot.className="dot";
+    dot.style.background=task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#ffcc00";
 
-    const c = document.createElement("input");
-    c.type = "checkbox";
-    c.checked = task.done;
-    c.onchange = () => { task.done = c.checked; save(); render(); };
+    const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title;
+    title.onclick=()=>openDetails(task.id);
 
-    const dot = document.createElement("div");
-    dot.className = "dot";
-    dot.style.background =
-      task.priority === 1 ? "#ff3b30" :
-      task.priority === 2 ? "#ff9500" : "#ffcc00";
-
-    const title = document.createElement("div");
-    title.className = "task-title";
-    title.textContent = task.title;
-    title.onclick = () => openDetails(task.id);
-
-    row.append(c, dot, title);
-    card.append(row);
-    tasksDiv.append(card);
+    row.append(c,title,dot);
+    card.append(row); tasksDiv.append(card);
   });
 }
 
