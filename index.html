@@ -45,18 +45,18 @@ header button {
 /* Swipe background buttons */
 .swipe-bg {
   position: absolute;
-  inset:0;
+  top:0; bottom:0; right:0;
   display: flex;
   justify-content:flex-end;
   align-items:center;
   gap:8px;
-  padding:0 8px;
+  padding-right:8px;
   border-radius:16px;
   z-index:1; /* behind row */
 }
 
 .swipe-btn {
-  width:50px; height:44px;
+  width:44px; height:44px;
   display:flex; align-items:center; justify-content:center;
   border-radius:12px;
   color:#fff;
@@ -104,6 +104,37 @@ header button {
   color:#fff;
   display:block;
 }
+
+/* Details screen */
+#details {
+  position: fixed; inset:0; background:#f2f2f7; z-index:50; overflow-y:auto; display:none;
+}
+
+.section { background:#fff; margin:12px; padding:16px; border-radius:16px; }
+.section h3 { margin:0 0 8px 0; font-size:13px; color:#666; }
+.read-text { font-size:16px; line-height:1.4; min-height:24px; cursor:pointer; }
+
+input, textarea, select { width:100%; font-size:16px; padding:12px; border-radius:12px; border:1px solid #ccc; box-sizing:border-box; }
+textarea { resize:none; }
+
+.subtask-row {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.subtask-left, .subtask-right { flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.subtask-middle { flex:1; min-width:0; }
+
+.subtask-row input[type="checkbox"] { width:20px; height:20px; margin:0; }
+.subtask-row input[type="text"] { flex:1; padding:8px 12px; border-radius:12px; border:1px solid #ccc; }
+.subtask-row .text-view { flex:1; font-size:16px; cursor:pointer; }
+.subtask-row button { border:none; background:none; color:red; font-size:16px; flex-shrink:0; }
+
+#addSubBtn { width:100%; padding:12px; font-size:16px; border-radius:14px; background:#000; color:#fff; border:none; margin-top:8px; }
+
+.timestamps { font-size:12px; color:#888; margin-top:12px; }
 </style>
 </head>
 <body>
@@ -122,8 +153,28 @@ header button {
   </div>
 </div>
 
+<div id="details">
+  <header>
+    <button onclick="closeDetails()">← Back</button>
+  </header>
+  <div class="section">
+    <h3>Title</h3>
+    <div id="vTitle" class="read-text"></div>
+  </div>
+  <div class="section">
+    <h3>Description</h3>
+    <div id="vDesc" class="read-text"></div>
+  </div>
+  <div class="section">
+    <h3>Priority</h3>
+    <div id="vPriority" class="read-text"></div>
+  </div>
+  <button id="deleteTaskBtn" onclick="deleteTask()">Delete Task</button>
+</div>
+
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks")||"[]");
+let activeTask=null;
 
 function save(){ localStorage.setItem("tasks", JSON.stringify(tasks)); }
 
@@ -133,9 +184,29 @@ function addTask(){
   newTitle.value=""; save(); render();
 }
 
+function openDetails(id){
+  activeTask = tasks.find(t=>t.id===id);
+  vTitle.textContent = activeTask.title;
+  vDesc.textContent = activeTask.desc||"No description";
+  vPriority.textContent = activeTask.priority===1?"Must":activeTask.priority===2?"Important":"Normal";
+  details.style.display="block";
+  today.style.display="none";
+}
+
+function closeDetails(){
+  details.style.display="none";
+  today.style.display="block";
+}
+
+function deleteTask(){
+  if(!confirm("Delete this task?")) return;
+  tasks = tasks.filter(t=>t.id!==activeTask.id);
+  save(); closeDetails(); render();
+}
+
 function attachSwipe(row, task){
   let startX=0, currentX=0, moving=false, offset=0;
-  const btnWidth=52*3, threshold=btnWidth/2;
+  const btnWidth=44*3, threshold=btnWidth/2;
 
   const bg=document.createElement("div"); bg.className="swipe-bg";
   const editBtn=document.createElement("div"); editBtn.className="swipe-btn"; editBtn.textContent="✏️"; editBtn.style.background="#007AFF";
@@ -146,7 +217,7 @@ function attachSwipe(row, task){
 
   const resetRow=()=>{ row.style.transition="transform 0.2s ease, opacity 0.2s ease"; row.style.transform="translateX(0)"; row.style.opacity=1; setTimeout(()=>row.style.transition="",200); };
 
-  editBtn.onclick=(e)=>{ e.stopPropagation(); alert("Edit "+task.title); resetRow(); };
+  editBtn.onclick=(e)=>{ e.stopPropagation(); openDetails(task.id); resetRow(); };
   resBtn.onclick=(e)=>{ e.stopPropagation(); alert("Reschedule "+task.title); resetRow(); };
   delBtn.onclick=(e)=>{ e.stopPropagation(); tasks=tasks.filter(t=>t.id!==task.id); save(); render(); };
 
@@ -155,10 +226,9 @@ function attachSwipe(row, task){
     if(!moving) return;
     currentX=e.touches[0].clientX;
     let dx=currentX-startX+offset;
-    dx=Math.min(0,dx); // only left swipe
-    dx=Math.max(-btnWidth,dx);
+    dx=Math.min(0,dx); dx=Math.max(-btnWidth,dx);
     row.style.transform=`translateX(${dx}px)`;
-    row.style.opacity=1+dx/btnWidth*0.5; // fade out slightly
+    row.style.opacity = 1 + dx/btnWidth*0.7; // stronger fade
   });
   row.addEventListener("touchend", e=>{
     moving=false;
@@ -166,7 +236,7 @@ function attachSwipe(row, task){
     offset = dx<-threshold?-btnWidth:0;
     row.style.transition="transform 0.2s ease, opacity 0.2s ease";
     row.style.transform=`translateX(${offset}px)`;
-    row.style.opacity = offset===0?1:0.6;
+    row.style.opacity = offset===0?1:0.3;
     setTimeout(()=>row.style.transition="",200);
   });
 }
