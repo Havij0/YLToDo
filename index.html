@@ -39,6 +39,7 @@ header {
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
+  position: relative;
 }
 
 .task.done {
@@ -128,39 +129,30 @@ header {
   height: 100px;
 }
 
-/* Bottom sheet */
-#sheetOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
-  display: none;
-}
-
-#sheet {
+/* Popup menu */
+.popup {
   position: absolute;
-  bottom: 0;
-  width: 100%;
-  background: var(--card);
-  border-radius: 20px 20px 0 0;
-  padding: 16px;
+  right: 16px;
+  top: 60px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  overflow: hidden;
+  z-index: 10;
 }
 
-.sheet-btn {
-  padding: 16px;
-  font-size: 17px;
-  border-radius: 14px;
-  background: #f2f2f7;
-  margin-bottom: 10px;
-  text-align: center;
+.popup-btn {
+  padding: 14px 16px;
+  font-size: 15px;
+  border-bottom: 1px solid #eee;
 }
 
-.sheet-btn.danger {
-  background: #ffe5e5;
+.popup-btn:last-child {
+  border-bottom: none;
+}
+
+.popup-btn.danger {
   color: #d70015;
-}
-
-.sheet-btn.cancel {
-  font-weight: 600;
 }
 </style>
 </head>
@@ -181,20 +173,10 @@ header {
   <button onclick="addTask()">+</button>
 </div>
 
-<div id="sheetOverlay" onclick="closeSheet()">
-  <div id="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-btn" onclick="editTask()">✏️ Edit task</div>
-    <div class="sheet-btn" onclick="addSubtask()">➕ Add subtask</div>
-    <div class="sheet-btn" onclick="rescheduleTask()">📅 Reschedule</div>
-    <div class="sheet-btn danger" onclick="deleteTask()">🗑 Delete</div>
-    <div class="sheet-btn cancel" onclick="closeSheet()">Cancel</div>
-  </div>
-</div>
-
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
 let expanded = new Set();
-let activeTask = null;
+let openPopupTask = null;
 
 function save() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -215,41 +197,6 @@ function addTask() {
   titleInput.value = "";
   save();
   render();
-}
-
-function openSheet(task) {
-  activeTask = task;
-  sheetOverlay.style.display = "block";
-}
-
-function closeSheet() {
-  sheetOverlay.style.display = "none";
-  activeTask = null;
-}
-
-function editTask() {
-  const t = prompt("Edit task", activeTask.title);
-  if (t) activeTask.title = t;
-  save(); closeSheet(); render();
-}
-
-function addSubtask() {
-  const s = prompt("Subtask");
-  if (s) {
-    activeTask.subtasks.push({ title: s, done: false });
-    expanded.add(activeTask.id);
-  }
-  save(); closeSheet(); render();
-}
-
-function rescheduleTask() {
-  alert("Reschedule logic next step");
-  closeSheet();
-}
-
-function deleteTask() {
-  tasks = tasks.filter(t => t.id !== activeTask.id);
-  save(); closeSheet(); render();
 }
 
 function toggleSub(task, sub) {
@@ -303,10 +250,50 @@ function render() {
     const menu = document.createElement("div");
     menu.className = "menu";
     menu.textContent = "⋯";
-    menu.onclick = () => openSheet(task);
+    menu.onclick = (e) => {
+      e.stopPropagation();
+      openPopupTask = openPopupTask === task.id ? null : task.id;
+      render();
+    };
 
     header.append(check, dot, title, chev, menu);
     card.append(header);
+
+    if (openPopupTask === task.id) {
+      const popup = document.createElement("div");
+      popup.className = "popup";
+
+      const mk = (txt, fn, danger=false) => {
+        const b = document.createElement("div");
+        b.className = "popup-btn" + (danger ? " danger" : "");
+        b.textContent = txt;
+        b.onclick = () => {
+          fn();
+          openPopupTask = null;
+          save(); render();
+        };
+        return b;
+      };
+
+      popup.append(
+        mk("✏️ Edit", () => {
+          const t = prompt("Edit task", task.title);
+          if (t) task.title = t;
+        }),
+        mk("➕ Add subtask", () => {
+          const s = prompt("Subtask");
+          if (s) {
+            task.subtasks.push({title:s, done:false});
+            expanded.add(task.id);
+          }
+        }),
+        mk("🗑 Delete", () => {
+          tasks = tasks.filter(t => t.id !== task.id);
+        }, true)
+      );
+
+      card.append(popup);
+    }
 
     if (task.subtasks.length) {
       const subs = document.createElement("div");
@@ -335,6 +322,13 @@ function render() {
     list.append(card);
   });
 }
+
+document.body.onclick = () => {
+  if (openPopupTask) {
+    openPopupTask = null;
+    render();
+  }
+};
 
 render();
 </script>
