@@ -36,8 +36,8 @@ header {
 
 .task {
   background: var(--card);
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 16px;
   margin-bottom: 12px;
 }
 
@@ -48,7 +48,7 @@ header {
 .task-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .task-header input {
@@ -62,33 +62,38 @@ header {
 }
 
 .chevron {
-  font-size: 20px;
-  padding: 6px;
-  margin-right: 8px;
+  font-size: 22px;
+  padding: 6px 10px;
   cursor: pointer;
 }
 
 .menu {
   font-size: 22px;
-  padding: 6px;
+  padding: 6px 10px;
   cursor: pointer;
 }
 
 .subtasks {
-  margin-top: 10px;
-  padding-left: 28px;
+  margin-top: 12px;
+  padding-left: 34px;
   display: none;
 }
 
 .subtask {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .subtask input {
   transform: scale(1.2);
+}
+
+.priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
 
 #addBar {
@@ -105,29 +110,57 @@ header {
 
 #addBar input, #addBar select {
   font-size: 16px;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 12px;
+  border-radius: 12px;
   border: 1px solid #ccc;
 }
 
 #addBar button {
-  padding: 10px 14px;
-  font-size: 16px;
-  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 18px;
+  border-radius: 12px;
   border: none;
   background: black;
   color: white;
 }
 
-.priority-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 6px;
+.footer-space {
+  height: 100px;
 }
 
-.footer-space {
-  height: 90px;
+/* Bottom sheet */
+#sheetOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: none;
+}
+
+#sheet {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+}
+
+.sheet-btn {
+  padding: 16px;
+  font-size: 17px;
+  border-radius: 14px;
+  background: #f2f2f7;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.sheet-btn.danger {
+  background: #ffe5e5;
+  color: #d70015;
+}
+
+.sheet-btn.cancel {
+  font-weight: 600;
 }
 </style>
 </head>
@@ -135,7 +168,6 @@ header {
 <body>
 
 <header>Today</header>
-
 <div id="tasks"></div>
 <div class="footer-space"></div>
 
@@ -149,9 +181,20 @@ header {
   <button onclick="addTask()">+</button>
 </div>
 
+<div id="sheetOverlay" onclick="closeSheet()">
+  <div id="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-btn" onclick="editTask()">✏️ Edit task</div>
+    <div class="sheet-btn" onclick="addSubtask()">➕ Add subtask</div>
+    <div class="sheet-btn" onclick="rescheduleTask()">📅 Reschedule</div>
+    <div class="sheet-btn danger" onclick="deleteTask()">🗑 Delete</div>
+    <div class="sheet-btn cancel" onclick="closeSheet()">Cancel</div>
+  </div>
+</div>
+
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
 let expanded = new Set();
+let activeTask = null;
 
 function save() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -174,12 +217,46 @@ function addTask() {
   render();
 }
 
-function toggleSubtask(task, sub) {
+function openSheet(task) {
+  activeTask = task;
+  sheetOverlay.style.display = "block";
+}
+
+function closeSheet() {
+  sheetOverlay.style.display = "none";
+  activeTask = null;
+}
+
+function editTask() {
+  const t = prompt("Edit task", activeTask.title);
+  if (t) activeTask.title = t;
+  save(); closeSheet(); render();
+}
+
+function addSubtask() {
+  const s = prompt("Subtask");
+  if (s) {
+    activeTask.subtasks.push({ title: s, done: false });
+    expanded.add(activeTask.id);
+  }
+  save(); closeSheet(); render();
+}
+
+function rescheduleTask() {
+  alert("Reschedule logic next step");
+  closeSheet();
+}
+
+function deleteTask() {
+  tasks = tasks.filter(t => t.id !== activeTask.id);
+  save(); closeSheet(); render();
+}
+
+function toggleSub(task, sub) {
   sub.done = !sub.done;
   task.done = task.subtasks.length && task.subtasks.every(s => s.done);
   if (task.done) expanded.delete(task.id);
-  save();
-  render();
+  save(); render();
 }
 
 function render() {
@@ -201,8 +278,7 @@ function render() {
     check.onchange = () => {
       task.done = check.checked;
       if (task.done) expanded.delete(task.id);
-      save();
-      render();
+      save(); render();
     };
 
     const dot = document.createElement("div");
@@ -227,22 +303,7 @@ function render() {
     const menu = document.createElement("div");
     menu.className = "menu";
     menu.textContent = "⋯";
-    menu.onclick = () => {
-      const action = prompt("edit / delete / sub");
-      if (action === "delete") {
-        tasks = tasks.filter(t => t.id !== task.id);
-      }
-      if (action === "edit") {
-        const t = prompt("Edit title", task.title);
-        if (t) task.title = t;
-      }
-      if (action === "sub") {
-        const s = prompt("Subtask");
-        if (s) task.subtasks.push({title:s, done:false});
-      }
-      save();
-      render();
-    };
+    menu.onclick = () => openSheet(task);
 
     header.append(check, dot, title, chev, menu);
     card.append(header);
@@ -259,7 +320,7 @@ function render() {
         const c = document.createElement("input");
         c.type = "checkbox";
         c.checked = sub.done;
-        c.onchange = () => toggleSubtask(task, sub);
+        c.onchange = () => toggleSub(task, sub);
 
         const t = document.createElement("div");
         t.textContent = sub.title;
