@@ -135,10 +135,16 @@ header {
   right: 16px;
   top: 60px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18);
   overflow: hidden;
   z-index: 10;
+  animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity:0 }
+  to { transform: translateY(0); opacity:1 }
 }
 
 .popup-btn {
@@ -153,6 +159,29 @@ header {
 
 .popup-btn.danger {
   color: #d70015;
+}
+
+/* Batch subtask textarea */
+#batchSub {
+  width: 100%;
+  height: 120px;
+  font-size: 15px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  resize: none;
+  margin-bottom: 10px;
+}
+
+#batchDone {
+  padding: 12px;
+  border-radius: 12px;
+  width: 100%;
+  border: none;
+  background: black;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -177,6 +206,7 @@ header {
 let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
 let expanded = new Set();
 let openPopupTask = null;
+let batchModeTask = null;
 
 function save() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -252,6 +282,7 @@ function render() {
     menu.textContent = "⋯";
     menu.onclick = (e) => {
       e.stopPropagation();
+      if (batchModeTask) batchModeTask = null;
       openPopupTask = openPopupTask === task.id ? null : task.id;
       render();
     };
@@ -280,12 +311,8 @@ function render() {
           const t = prompt("Edit task", task.title);
           if (t) task.title = t;
         }),
-        mk("➕ Add subtask", () => {
-          const s = prompt("Subtask");
-          if (s) {
-            task.subtasks.push({title:s, done:false});
-            expanded.add(task.id);
-          }
+        mk("➕ Add subtasks", () => {
+          batchModeTask = task.id;
         }),
         mk("🗑 Delete", () => {
           tasks = tasks.filter(t => t.id !== task.id);
@@ -293,6 +320,29 @@ function render() {
       );
 
       card.append(popup);
+    }
+
+    if (batchModeTask === task.id) {
+      const batchDiv = document.createElement("div");
+      batchDiv.style.marginTop = "12px";
+
+      const ta = document.createElement("textarea");
+      ta.id = "batchSub";
+      ta.placeholder = "Enter one subtask per line";
+
+      const doneBtn = document.createElement("button");
+      doneBtn.id = "batchDone";
+      doneBtn.textContent = "Add all subtasks";
+      doneBtn.onclick = () => {
+        const lines = ta.value.split("\n").map(l=>l.trim()).filter(l=>l);
+        lines.forEach(l => task.subtasks.push({title:l, done:false}));
+        expanded.add(task.id);
+        batchModeTask = null;
+        save(); render();
+      };
+
+      batchDiv.append(ta, doneBtn);
+      card.append(batchDiv);
     }
 
     if (task.subtasks.length) {
@@ -324,8 +374,9 @@ function render() {
 }
 
 document.body.onclick = () => {
-  if (openPopupTask) {
+  if (openPopupTask || batchModeTask) {
     openPopupTask = null;
+    batchModeTask = null;
     render();
   }
 };
