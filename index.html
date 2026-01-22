@@ -48,15 +48,15 @@ header button {
   display: flex;
   align-items: center;
   min-height: 48px;
-  padding: 12px 16px;
+  padding: 0 12px;
 }
 
-.task-left, .task-right { flex-shrink: 0; display: flex; align-items: center; }
-.task-middle { flex: 1; margin: 0 8px; }
+.task-left { width: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.task-middle { flex: 1; min-width:0; margin: 0 8px; }
+.task-right { width: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-.task-row input[type="checkbox"] { transform: scale(1.3); }
-
-.task-title { font-size: 16px; font-weight: 600; }
+.task-row input[type="checkbox"] { width: 22px; height: 22px; margin:0; }
+.task-title { font-size: 16px; font-weight: 600; cursor: pointer; }
 
 /* Dot for priority */
 .dot { width: 12px; height: 12px; border-radius: 50%; }
@@ -90,12 +90,12 @@ textarea { resize:none; }
   gap: 8px;
   margin-bottom: 8px;
 }
-.subtask-left, .subtask-right { flex-shrink:0; display:flex; align-items:center; }
-.subtask-middle { flex:1; }
+.subtask-left, .subtask-right { flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.subtask-middle { flex:1; min-width:0; }
 
-.subtask-row input[type="checkbox"] { transform: scale(1.2); }
+.subtask-row input[type="checkbox"] { width:20px; height:20px; margin:0; }
 .subtask-row input[type="text"] { flex:1; padding:8px 12px; border-radius:12px; border:1px solid #ccc; }
-.subtask-row .text-view { flex:1; font-size:16px; }
+.subtask-row .text-view { flex:1; font-size:16px; cursor:pointer; }
 .subtask-row button { border:none; background:none; color:red; font-size:16px; flex-shrink:0; }
 </style>
 </head>
@@ -191,7 +191,8 @@ function renderDetails(){
     const middle=document.createElement("div"); middle.className="subtask-middle";
     const right=document.createElement("div"); right.className="subtask-right";
 
-    const c=document.createElement("input"); c.type="checkbox"; c.checked=s.done; c.onchange=()=>{ s.done=c.checked; save(); };
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=s.done; 
+    c.onchange=(e)=>{ s.done=c.checked; save(); e.stopPropagation(); };
     left.append(c);
 
     if(editMode){
@@ -222,10 +223,12 @@ function render(){
     const middle=document.createElement("div"); middle.className="task-middle";
     const right=document.createElement("div"); right.className="task-right";
 
-    const c=document.createElement("input"); c.type="checkbox"; c.checked=task.done; c.onchange=()=>{ task.done=c.checked; save(); render(); };
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=task.done; 
+    c.onchange=(e)=>{ task.done=c.checked; save(); render(); e.stopPropagation(); };
     left.append(c);
 
-    const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title; title.onclick=()=>openDetails(task.id);
+    const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title; 
+    title.onclick=(e)=>{ openDetails(task.id); e.stopPropagation(); };
     middle.append(title);
 
     const dot=document.createElement("div"); dot.className="dot"; dot.style.background=task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#ffcc00";
