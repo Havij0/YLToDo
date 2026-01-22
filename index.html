@@ -14,6 +14,7 @@ body {
 
 .hidden { display: none; }
 
+/* Header */
 header {
   padding: 14px 16px;
   font-size: 18px;
@@ -27,11 +28,13 @@ header {
 
 header button {
   font-size: 16px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border: none;
   background: none;
+  cursor: pointer;
 }
 
+/* Today Page */
 #tasks {
   padding: 12px;
   padding-bottom: 120px;
@@ -40,7 +43,7 @@ header button {
 .task {
   background: #fff;
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px 16px;
   margin-bottom: 12px;
 }
 
@@ -52,8 +55,9 @@ header button {
   gap: 12px;
 }
 
-.task-row input {
+.task-row input[type="checkbox"] {
   transform: scale(1.3);
+  flex-shrink: 0;
 }
 
 .task-title {
@@ -66,8 +70,10 @@ header button {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
+/* Add Bar */
 #addBar {
   position: fixed;
   bottom: 0;
@@ -96,8 +102,7 @@ header button {
   color: #fff;
 }
 
-/* DETAILS VIEW */
-
+/* Details Screen */
 #details {
   position: fixed;
   inset: 0;
@@ -122,27 +127,38 @@ header button {
 .read-text {
   font-size: 16px;
   line-height: 1.4;
+  min-height: 24px;
 }
 
+/* Inputs */
 input, textarea, select {
   width: 100%;
   font-size: 16px;
-  padding: 14px;
-  border-radius: 14px;
+  padding: 12px;
+  border-radius: 12px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
 }
 
 textarea { resize: none; }
 
+/* Subtasks */
 .subtask {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
+  min-height: 44px;
 }
 
 .subtask input[type="checkbox"] {
   transform: scale(1.2);
+  flex-shrink: 0;
+}
+
+.subtask input[type="text"] {
+  flex: 1;
 }
 
 .subtask button {
@@ -150,6 +166,7 @@ textarea { resize: none; }
   background: none;
   color: red;
   font-size: 16px;
+  flex-shrink: 0;
 }
 </style>
 </head>
@@ -208,7 +225,6 @@ textarea { resize: none; }
   <div class="section">
     <h3>Subtasks</h3>
     <div id="subtasks"></div>
-
     <textarea id="batchSub" class="hidden" placeholder="One subtask per line"></textarea>
     <button id="addSubBtn" class="hidden" onclick="addSubtasks()">Add subtasks</button>
   </div>
@@ -290,25 +306,21 @@ function renderDetails() {
     c.type = "checkbox";
     c.checked = s.done;
     c.onchange = () => { s.done = c.checked; save(); };
-
     row.append(c);
 
     if (editMode) {
       const t = document.createElement("input");
+      t.type = "text";
       t.value = s.title;
       t.oninput = () => { s.title = t.value; save(); };
-
       const del = document.createElement("button");
       del.textContent = "🗑";
-      del.onclick = () => {
-        activeTask.subtasks.splice(i, 1);
-        renderDetails();
-        save();
-      };
+      del.onclick = () => { activeTask.subtasks.splice(i, 1); renderDetails(); save(); };
       row.append(t, del);
     } else {
       const t = document.createElement("div");
       t.textContent = s.title;
+      t.style.flex = "1";
       row.append(t);
     }
 
@@ -339,11 +351,7 @@ function render() {
     const c = document.createElement("input");
     c.type = "checkbox";
     c.checked = task.done;
-    c.onchange = () => {
-      task.done = c.checked;
-      save();
-      render();
-    };
+    c.onchange = () => { task.done = c.checked; save(); render(); };
 
     const dot = document.createElement("div");
     dot.className = "dot";
