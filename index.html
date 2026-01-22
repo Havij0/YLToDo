@@ -3,72 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Todo App - Phase 3</title>
+<title>Final Todo App</title>
 <style>
-html, body {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f2f2f7;
-}
+html, body { height:100%; margin:0; font-family:-apple-system, BlinkMacSystemFont, sans-serif; background:#f2f2f7; }
+body { display:flex; flex-direction:column; }
 
-body { display: flex; flex-direction: column; }
+header { flex-shrink:0; padding:16px; font-size:20px; font-weight:600; background:#fff; border-bottom:1px solid #e5e5ea; }
+.tasks-wrapper { flex:1; overflow:hidden; }
+#tasks { height:100%; overflow-y:auto; padding:12px; overscroll-behavior:contain; }
+#tasks:not(:has(.task:nth-child(4))) { overflow-y:hidden; }
 
-/* HEADER */
-header {
-  flex-shrink: 0;
-  padding: 16px;
-  font-size: 20px;
-  font-weight: 600;
-  background: #fff;
-  border-bottom: 1px solid #e5e5ea;
-}
+.task { margin-bottom:10px; }
+.task-row { position:relative; height:64px; background:#fff; border-radius:12px; overflow:hidden; }
+.task-actions { position:absolute; right:0; top:0; height:100%; display:flex; align-items:center; gap:14px; padding-right:16px; background:#f2f2f7; }
+.action { width:40px; height:40px; border-radius:10px; border:none; font-size:18px; display:flex; align-items:center; justify-content:center; color:white; }
+.action.edit { background:#007AFF; }
+.action.schedule { background:#FF9500; }
+.action.delete { background:#FF3B30; }
+.task-content { position:relative; z-index:2; height:100%; display:flex; align-items:center; gap:12px; padding:0 16px; background:#fff; transition:transform 0.25s ease, opacity 0.25s ease; cursor:pointer; }
+.task-content input { width:22px; height:22px; }
+.task-title { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:16px; }
+.priority { width:14px; height:14px; border-radius:50%; background:#ffcc00; }
 
-/* TASK LIST */
-.tasks-wrapper { flex: 1; overflow: hidden; }
-#tasks { height: 100%; overflow-y: auto; padding: 12px; overscroll-behavior: contain; }
-#tasks:not(:has(.task:nth-child(4))) { overflow-y: hidden; }
-
-/* TASK ROW */
-.task { margin-bottom: 10px; }
-.task-row { position: relative; height: 64px; background: #fff; border-radius: 12px; overflow: hidden; }
-.task-actions {
-  position: absolute; right: 0; top: 0; height: 100%;
-  display: flex; align-items: center; gap: 14px; padding-right: 16px; background: #f2f2f7;
-}
-.action { width: 40px; height: 40px; border-radius: 10px; border: none; font-size: 18px; display:flex; align-items:center; justify-content:center; color:white; }
-.action.edit { background: #007AFF; }
-.action.schedule { background: #FF9500; }
-.action.delete { background: #FF3B30; }
-.task-content {
-  position: relative; z-index: 2; height: 100%; display: flex; align-items: center; gap: 12px;
-  padding: 0 16px; background: #fff; transition: transform 0.25s ease, opacity 0.25s ease;
-}
-.task-content input { width: 22px; height: 22px; }
-.task-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size:16px; }
-.priority { width: 14px; height: 14px; border-radius: 50%; background:#ffcc00; }
-
-/* ADD TASK BAR */
 .add-bar { flex-shrink:0; height:64px; display:flex; align-items:center; gap:8px; padding:0 12px; background:#fff; border-top:1px solid #e5e5ea; }
 .add-bar input { flex:1; height:40px; border-radius:10px; border:1px solid #ccc; padding:0 12px; font-size:16px; }
-.add-bar button { width:44px; height:44px; border-radius:12px; border:none; font-size:22px; background:#000; color:#fff; }
+.add-bar button { width:44px; height:44px; border-radius:12px; border:none; font-size:22px; background:#000; color:#fff; cursor:pointer; }
 
-/* MODAL TASK DETAIL */
-#taskModal { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.3); display:none; justify-content:center; align-items:center; z-index:100; }
+/* MODAL */
+#taskModal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.3); display:none; justify-content:center; align-items:center; z-index:100; }
 #taskModal .modal-content { background:white; width:90%; max-width:400px; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:12px; max-height:80%; overflow-y:auto; }
 .modal-header { display:flex; justify-content:space-between; align-items:center; font-size:18px; font-weight:600; }
 .modal-header button { font-size:20px; border:none; background:none; cursor:pointer; }
 .subtasks { display:flex; flex-direction:column; gap:8px; }
 .subtask-row { display:flex; gap:8px; align-items:center; }
 .subtask-row input { flex:1; height:30px; border-radius:6px; border:1px solid #ccc; padding:0 8px; font-size:14px; }
-.subtask-row button { width:28px; height:28px; border:none; border-radius:6px; background:#FF3B30; color:white; font-size:16px; cursor:pointer; }
+.subtask-row button { width:28px; height:28px; border:none; border-radius:6px; background:#FF3B30; color:white; font-size:16px; cursor:pointer; display:none; }
 .modal-footer { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#555; }
 #editBtn { padding:6px 12px; background:#007AFF; color:white; border:none; border-radius:8px; cursor:pointer; }
-#deleteTaskBtn { padding:6px 12px; background:#FF3B30; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:8px; width:100%; }
+#deleteTaskBtn { padding:6px 12px; background:#FF3B30; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; display:none; margin-top:8px; }
 
-/* EDIT MODE */
-.edit-mode input.title-edit { width:100%; font-size:16px; border:1px solid #ccc; border-radius:8px; padding:4px 8px; }
+.title-edit { width:100%; font-size:16px; border:1px solid #ccc; border-radius:8px; padding:4px 8px; display:none; }
+
 </style>
 </head>
 <body>
@@ -91,7 +66,7 @@ header {
       <span id="modalTitle"></span>
       <button id="closeModal">&times;</button>
     </div>
-    <input id="titleEdit" class="title-edit" style="display:none;">
+    <input id="titleEdit" class="title-edit">
     <div class="subtasks"></div>
     <div class="modal-footer">
       <span id="timestamps"></span>
@@ -102,36 +77,39 @@ header {
 </div>
 
 <script>
-let tasks = [
-  { id:1, title:"Buy groceries", subtasks:[], created:Date.now(), updated:Date.now() },
-  { id:2, title:"Finish project presentation with long title", subtasks:[], created:Date.now(), updated:Date.now() },
-  { id:3, title:"Go to the gym", subtasks:[], created:Date.now(), updated:Date.now() }
+let tasks=[
+  {id:1,title:"Buy groceries",subtasks:[],created:Date.now(),updated:Date.now()},
+  {id:2,title:"Finish project presentation with long title",subtasks:[],created:Date.now(),updated:Date.now()},
+  {id:3,title:"Go to the gym",subtasks:[],created:Date.now(),updated:Date.now()}
 ];
 
-const ACTION_WIDTH = 160;
-let currentTask = null;
-let editMode = false;
+const ACTION_WIDTH=160;
+let currentTask=null;
+let editMode=false;
 
 /* ---------- RENDER TASK LIST ---------- */
-function render() {
-  const list = document.getElementById("tasks");
-  list.innerHTML = "";
+function render(){
+  const list=document.getElementById("tasks");
+  list.innerHTML="";
   tasks.forEach(task=>{
-    const wrapper = document.createElement("div"); wrapper.className="task";
-    const row = document.createElement("div"); row.className="task-row";
+    const wrapper=document.createElement("div"); wrapper.className="task";
+    const row=document.createElement("div"); row.className="task-row";
 
-    const actions = document.createElement("div"); actions.className="task-actions";
+    const actions=document.createElement("div"); actions.className="task-actions";
     actions.innerHTML=`<button class="action edit">✏️</button>
                        <button class="action schedule">📅</button>
                        <button class="action delete">🗑️</button>`;
 
-    const content = document.createElement("div"); content.className="task-content";
+    const content=document.createElement("div"); content.className="task-content";
     content.innerHTML=`<input type="checkbox"><div class="task-title">${task.title}</div><div class="priority"></div>`;
 
     row.append(actions,content); wrapper.append(row); list.append(wrapper);
 
     attachSwipe(row,content);
-    content.querySelector(".task-title").addEventListener("click",()=>openTaskModal(task));
+    content.querySelector(".task-title").addEventListener("click",(e)=>{
+      e.stopPropagation();
+      openTaskModal(task);
+    });
   });
 }
 
@@ -160,8 +138,8 @@ function attachSwipe(row,content){
 function addTask(){
   const input=document.getElementById("newTask");
   const title=input.value.trim(); if(!title) return;
-  const t={id:Date.now(),title,subtasks:[],created:Date.now(),updated:Date.now()};
-  tasks.push(t); input.value=""; render();
+  tasks.push({id:Date.now(),title,subtasks:[],created:Date.now(),updated:Date.now()});
+  input.value=""; render();
 }
 
 /* ---------- TASK MODAL ---------- */
@@ -192,50 +170,46 @@ function renderModal(){
   subtaskContainer.innerHTML="";
   currentTask.subtasks.forEach((st,i)=>{
     const row=document.createElement("div"); row.className="subtask-row";
-    const input=document.createElement("input"); input.value=st.title;
-    input.disabled=!editMode;
+    const input=document.createElement("input"); input.value=st.title; input.disabled=!editMode;
     input.addEventListener("input",()=>{st.title=input.value; currentTask.updated=Date.now(); renderModal();});
-    const delBtn=document.createElement("button"); delBtn.textContent="×";
-    delBtn.style.display=editMode?"block":"none";
+    const delBtn=document.createElement("button"); delBtn.textContent="×"; delBtn.style.display=editMode?"block":"none";
     delBtn.addEventListener("click",()=>{currentTask.subtasks.splice(i,1); currentTask.updated=Date.now(); renderModal();});
-    row.append(input,delBtn);
-    subtaskContainer.append(row);
+    row.append(input,delBtn); subtaskContainer.append(row);
   });
 
-  // add subtask button
   if(editMode){
     const addBtn=document.createElement("button"); addBtn.textContent="+ Add Subtask";
-    addBtn.style.marginTop="8px";
-    addBtn.addEventListener("click",()=>{
-      currentTask.subtasks.push({title:"",done:false});
-      renderModal();
-    });
+    addBtn.style.marginTop="8px"; addBtn.addEventListener("click",()=>{currentTask.subtasks.push({title:"",done:false}); currentTask.updated=Date.now(); renderModal();});
     subtaskContainer.append(addBtn);
   }
 
   const created=new Date(currentTask.created).toLocaleString();
   const updated=new Date(currentTask.updated).toLocaleString();
   timestamps.textContent=`Created: ${created} | Last edit: ${updated}`;
+
+  editBtn.textContent=editMode?"Save":"Edit";
+  deleteBtn.style.display=editMode?"block":"none";
 }
 
 editBtn.addEventListener("click",()=>{
-  editMode=!editMode;
-  renderModal();
+  if(editMode){
+    currentTask.title=titleEdit.value;
+    currentTask.updated=Date.now();
+    editMode=false;
+  } else { editMode=true; }
+  renderModal(); render();
 });
 
 deleteBtn.addEventListener("click",()=>{
   if(!currentTask) return;
   tasks=tasks.filter(t=>t.id!==currentTask.id);
-  currentTask=null;
-  modal.style.display="none";
-  render();
+  currentTask=null; modal.style.display="none"; render();
 });
 
-closeBtn.addEventListener("click",()=>{
-  modal.style.display="none";
-});
+closeBtn.addEventListener("click",()=>{modal.style.display="none";});
 
 render();
 </script>
+
 </body>
 </html>
