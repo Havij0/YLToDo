@@ -10,14 +10,14 @@ body { margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; backgr
 header { padding:14px 16px; font-size:18px; font-weight:600; background:#fff; border-bottom:1px solid #ddd; display:flex; align-items:center; justify-content:space-between; }
 header button { font-size:16px; padding:6px 12px; border:none; background:none; cursor:pointer; }
 #tasks { padding:12px; padding-bottom:120px; }
-.task { background:#fff; border-radius:16px; margin-bottom:12px; overflow:hidden; position:relative; touch-action: pan-y; }
+.task { background:#fff; border-radius:16px; margin-bottom:12px; overflow:hidden; position:relative; touch-action: pan-y; transition: background 0.2s; }
 .task.done { opacity:0.5; }
-.task-row { display:flex; align-items:center; min-height:48px; padding:0 12px; transition: transform 0.2s ease; background:#fff; position:relative; z-index:2; }
+.task-row { display:flex; align-items:center; min-height:48px; padding:0 12px; background:#fff; position:relative; z-index:2; }
 .task-left { width:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .task-middle { flex:1; min-width:0; margin:0 8px; }
 .task-right { width:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .task-row input[type="checkbox"] { width:22px; height:22px; margin:0; }
-.task-title { font-size:16px; font-weight:600; cursor:pointer; }
+.task-title { font-size:16px; font-weight:600; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .dot { width:12px; height:12px; border-radius:50%; }
 .swipe-bg { position:absolute; inset:0; border-radius:16px; display:flex; justify-content:flex-end; align-items:center; padding:0 8px; z-index:1; }
 .swipe-btn { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-left:8px; color:#fff; font-size:18px; }
@@ -40,12 +40,13 @@ textarea { resize:none; }
 #addSubBtn { width:100%; padding:12px; font-size:16px; border-radius:14px; background:#000; color:#fff; border:none; margin-top:8px; }
 #deleteTaskBtn { width:100%; padding:14px; font-size:16px; border-radius:14px; background:#ff3b30; color:#fff; border:none; margin-top:12px; }
 .timestamps { font-size:12px; color:#888; margin-top:12px; }
+
 </style>
 </head>
 <body>
 
 <div id="today">
-  <header><span>Today</span><span></span></header>
+  <header><span>Today</span></header>
   <div id="tasks"></div>
   <div id="addBar">
     <input id="newTitle" placeholder="New task…">
@@ -106,16 +107,7 @@ function save(){ localStorage.setItem("tasks", JSON.stringify(tasks)); }
 function addTask(){
   const title = newTitle.value.trim(); if(!title) return;
   const now = Date.now();
-  tasks.push({
-    id: now,
-    title,
-    desc: "",
-    priority: Number(newPriority.value),
-    done: false,
-    subtasks: [],
-    createdAt: now,
-    lastEdited: now
-  });
+  tasks.push({id:now,title,desc:"",priority:Number(newPriority.value),done:false,subtasks:[],createdAt:now,lastEdited:now});
   newTitle.value=""; save(); render();
 }
 
@@ -202,7 +194,6 @@ function addSubtasks(){
 
 function attachSwipe(taskRow, task){
   let startX=0, currentX=0, moving=false;
-  const threshold=80;
   taskRow.querySelectorAll(".swipe-bg").forEach(el=>el.remove());
   const bg=document.createElement("div"); bg.className="swipe-bg"; taskRow.prepend(bg);
 
