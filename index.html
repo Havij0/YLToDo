@@ -211,6 +211,7 @@ function render() {
     header.append(check,dot,title,chev,menu);
     card.append(header);
 
+    // popup menu right-aligned
     if(openPopupTask===task.id){
       const popup=document.createElement("div");
       popup.className="popup";
@@ -241,6 +242,7 @@ function render() {
       card.append(popup);
     }
 
+    // **Final batch input outside popup**
     if(batchModeTask===task.id){
       const batchDiv=document.createElement("div");
       batchDiv.style.marginTop="12px";
