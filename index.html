@@ -9,9 +9,10 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f2f2f7;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-
-.hidden { display: none; }
 
 header {
   padding: 14px 16px;
@@ -22,17 +23,15 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
-header button {
-  font-size: 16px;
-  padding: 6px 12px;
-  border: none;
-  background: none;
-  cursor: pointer;
+#tasks-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  padding-bottom: 100px; /* enough for Add Task bar */
 }
-
-#tasks { padding: 12px; padding-bottom: 120px; }
 
 .task {
   position: relative;
@@ -78,15 +77,25 @@ header button {
 
 .task-left { width:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .task-middle { flex:1; min-width:0; margin:0 8px; }
-.task-right { width:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.task-right { width:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
 .task-row input[type="checkbox"] { width:22px; height:22px; margin:0; }
 .task-title { font-size:16px; font-weight:600; cursor:pointer; }
-.dot { width:12px; height:12px; border-radius:50%; }
 
+/* Improved priority dots/logos */
+.dot {
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  border:1px solid #ccc;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* Add Task Bar */
 #addBar {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: #fff; padding: 12px; display: flex; gap: 8px; border-top: 1px solid #ddd;
+  z-index: 10;
 }
 
 #addBar input, #addBar select { font-size:16px; padding:14px; border-radius:14px; border:1px solid #ccc; }
@@ -114,43 +123,24 @@ header button {
 .section h3 { margin:0 0 8px 0; font-size:13px; color:#666; }
 .read-text { font-size:16px; line-height:1.4; min-height:24px; cursor:pointer; }
 
-input, textarea, select { width:100%; font-size:16px; padding:12px; border-radius:12px; border:1px solid #ccc; box-sizing:border-box; }
-textarea { resize:none; }
-
-.subtask-row {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.subtask-left, .subtask-right { flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-.subtask-middle { flex:1; min-width:0; }
-
-.subtask-row input[type="checkbox"] { width:20px; height:20px; margin:0; }
-.subtask-row input[type="text"] { flex:1; padding:8px 12px; border-radius:12px; border:1px solid #ccc; }
-.subtask-row .text-view { flex:1; font-size:16px; cursor:pointer; }
-.subtask-row button { border:none; background:none; color:red; font-size:16px; flex-shrink:0; }
-
-#addSubBtn { width:100%; padding:12px; font-size:16px; border-radius:14px; background:#000; color:#fff; border:none; margin-top:8px; }
-
-.timestamps { font-size:12px; color:#888; margin-top:12px; }
 </style>
 </head>
 <body>
 
-<div id="today">
-  <header><span>Today</span><span></span></header>
+<header><span>Today</span></header>
+
+<div id="tasks-container">
   <div id="tasks"></div>
-  <div id="addBar">
-    <input id="newTitle" placeholder="New task…">
-    <select id="newPriority">
-      <option value="3">Normal</option>
-      <option value="2">Important</option>
-      <option value="1">Must</option>
-    </select>
-    <button onclick="addTask()">+</button>
-  </div>
+</div>
+
+<div id="addBar">
+  <input id="newTitle" placeholder="New task…">
+  <select id="newPriority">
+    <option value="3">Normal</option>
+    <option value="2">Important</option>
+    <option value="1">Must</option>
+  </select>
+  <button onclick="addTask()">+</button>
 </div>
 
 <div id="details">
@@ -190,12 +180,12 @@ function openDetails(id){
   vDesc.textContent = activeTask.desc||"No description";
   vPriority.textContent = activeTask.priority===1?"Must":activeTask.priority===2?"Important":"Normal";
   details.style.display="block";
-  today.style.display="none";
+  document.getElementById("tasks-container").style.display="none";
 }
 
 function closeDetails(){
   details.style.display="none";
-  today.style.display="block";
+  document.getElementById("tasks-container").style.display="block";
 }
 
 function deleteTask(){
