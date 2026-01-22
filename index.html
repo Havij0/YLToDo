@@ -35,21 +35,45 @@ header button {
 #tasks { padding: 12px; padding-bottom: 120px; }
 
 .task {
-  margin-bottom: 12px;
   position: relative;
-  border-radius:16px;
-  overflow:hidden;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
 }
 
-.task-row {
+/* Swipe background buttons */
+.swipe-bg {
+  position: absolute;
+  inset:0;
   display: flex;
-  align-items: center;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+  padding:0 8px;
+  border-radius:16px;
+  z-index:1; /* behind row */
+}
+
+.swipe-btn {
+  width:50px; height:44px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:12px;
+  color:#fff;
+  font-size:18px;
+  flex-shrink:0;
+}
+
+/* Row content */
+.task-row {
+  display:flex;
+  align-items:center;
   min-height:48px;
   padding:0 12px;
+  position:relative;
+  z-index:2; /* above buttons */
   background:#fff;
-  position: relative;
-  z-index:2; /* row is above buttons */
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .task-left { width:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -60,24 +84,6 @@ header button {
 .task-title { font-size:16px; font-weight:600; cursor:pointer; }
 .dot { width:12px; height:12px; border-radius:50%; }
 
-.swipe-bg {
-  position:absolute;
-  inset:0;
-  display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  gap:8px;
-  padding:0 8px;
-  border-radius:16px;
-  z-index:1; /* behind row */
-}
-
-.swipe-btn {
-  width:52px; height:44px; border-radius:12px;
-  display:flex; align-items:center; justify-content:center;
-  color:#fff; font-size:18px; flex-shrink:0;
-}
-
 #addBar {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: #fff; padding: 12px; display: flex; gap: 8px; border-top: 1px solid #ddd;
@@ -85,6 +91,19 @@ header button {
 
 #addBar input, #addBar select { font-size:16px; padding:14px; border-radius:14px; border:1px solid #ccc; }
 #addBar button { padding:14px 18px; font-size:20px; border-radius:14px; border:none; background:#000; color:#fff; }
+
+/* Delete button design */
+#deleteTaskBtn {
+  width: calc(100% - 24px);
+  margin: 12px auto;
+  padding:12px;
+  font-size:16px;
+  border-radius:14px;
+  border:none;
+  background:#ff3b30;
+  color:#fff;
+  display:block;
+}
 </style>
 </head>
 <body>
@@ -122,9 +141,10 @@ function attachSwipe(row, task){
   const editBtn=document.createElement("div"); editBtn.className="swipe-btn"; editBtn.textContent="✏️"; editBtn.style.background="#007AFF";
   const resBtn=document.createElement("div"); resBtn.className="swipe-btn"; resBtn.textContent="📅"; resBtn.style.background="#FF9500";
   const delBtn=document.createElement("div"); delBtn.className="swipe-btn"; delBtn.textContent="🗑️"; delBtn.style.background="#FF3B30";
-  bg.append(editBtn,resBtn,delBtn); row.parentElement.prepend(bg);
+  bg.append(editBtn,resBtn,delBtn);
+  row.parentElement.prepend(bg);
 
-  const resetRow=()=>{ row.style.transition="transform 0.2s"; row.style.transform=""; setTimeout(()=>row.style.transition="",200); };
+  const resetRow=()=>{ row.style.transition="transform 0.2s ease, opacity 0.2s ease"; row.style.transform="translateX(0)"; row.style.opacity=1; setTimeout(()=>row.style.transition="",200); };
 
   editBtn.onclick=(e)=>{ e.stopPropagation(); alert("Edit "+task.title); resetRow(); };
   resBtn.onclick=(e)=>{ e.stopPropagation(); alert("Reschedule "+task.title); resetRow(); };
@@ -138,13 +158,15 @@ function attachSwipe(row, task){
     dx=Math.min(0,dx); // only left swipe
     dx=Math.max(-btnWidth,dx);
     row.style.transform=`translateX(${dx}px)`;
+    row.style.opacity=1+dx/btnWidth*0.5; // fade out slightly
   });
   row.addEventListener("touchend", e=>{
     moving=false;
     let dx=currentX-startX+offset;
     offset = dx<-threshold?-btnWidth:0;
-    row.style.transition="transform 0.2s";
+    row.style.transition="transform 0.2s ease, opacity 0.2s ease";
     row.style.transform=`translateX(${offset}px)`;
+    row.style.opacity = offset===0?1:0.6;
     setTimeout(()=>row.style.transition="",200);
   });
 }
