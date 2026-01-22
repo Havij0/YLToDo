@@ -13,7 +13,6 @@ body {
 
 .hidden { display: none; }
 
-/* Header */
 header {
   padding: 14px 16px;
   font-size: 18px;
@@ -33,13 +32,15 @@ header button {
   cursor: pointer;
 }
 
-/* Today page */
 #tasks { padding: 12px; padding-bottom: 120px; }
 
 .task {
   background: #fff;
   border-radius: 16px;
   margin-bottom: 12px;
+  overflow: hidden;
+  position: relative;
+  touch-action: pan-y;
 }
 
 .task.done { opacity: 0.5; }
@@ -49,6 +50,10 @@ header button {
   align-items: center;
   min-height: 48px;
   padding: 0 12px;
+  transition: transform 0.2s ease;
+  background:#fff;
+  position: relative;
+  z-index:2;
 }
 
 .task-left { width: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -58,8 +63,22 @@ header button {
 .task-row input[type="checkbox"] { width: 22px; height: 22px; margin:0; }
 .task-title { font-size: 16px; font-weight: 600; cursor: pointer; }
 
-/* Dot for priority */
 .dot { width: 12px; height: 12px; border-radius: 50%; }
+
+/* Swipe background */
+.swipe-bg {
+  position:absolute;
+  inset:0;
+  border-radius:16px;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:0 12px;
+  z-index:1;
+  color:#fff;
+  font-weight:600;
+  font-size:14px;
+}
 
 /* Add bar */
 #addBar {
@@ -82,7 +101,6 @@ header button {
 input, textarea, select { width:100%; font-size:16px; padding:12px; border-radius:12px; border:1px solid #ccc; box-sizing:border-box; }
 textarea { resize:none; }
 
-/* Subtasks */
 .subtask-row {
   display: flex;
   align-items: center;
@@ -98,10 +116,8 @@ textarea { resize:none; }
 .subtask-row .text-view { flex:1; font-size:16px; cursor:pointer; }
 .subtask-row button { border:none; background:none; color:red; font-size:16px; flex-shrink:0; }
 
-/* Add subtask button */
 #addSubBtn { width:100%; padding:12px; font-size:16px; border-radius:14px; background:#000; color:#fff; border:none; margin-top:8px; }
 
-/* Timestamps */
 .timestamps { font-size:12px; color:#888; margin-top:12px; }
 </style>
 </head>
@@ -165,7 +181,7 @@ textarea { resize:none; }
 let tasks = JSON.parse(localStorage.getItem("tasks")||"[]");
 let activeTask = null, editMode = false;
 
-function save() { localStorage.setItem("tasks", JSON.stringify(tasks)); }
+function save(){ localStorage.setItem("tasks", JSON.stringify(tasks)); }
 
 function addTask(){
   const title = newTitle.value.trim(); if(!title) return;
@@ -185,7 +201,7 @@ function addTask(){
 
 function openDetails(id){
   activeTask = tasks.find(t=>t.id===id);
-  editMode = false;
+  editMode=false;
   renderDetails();
   today.classList.add("hidden"); details.classList.remove("hidden");
 }
@@ -194,7 +210,7 @@ function closeDetails(){ save(); details.classList.add("hidden"); today.classLis
 
 function toggleEdit(){
   editMode = !editMode;
-  editBtn.textContent = editMode ? "Done" : "Edit";
+  editBtn.textContent = editMode?"Done":"Edit";
   if(!editMode){
     activeTask.title = eTitle.value;
     activeTask.desc = eDesc.value;
@@ -207,24 +223,21 @@ function toggleEdit(){
 
 function formatDate(ts){
   const d = new Date(ts);
-  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + " " + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+" "+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 }
 
 function renderDetails(){
-  vTitle.textContent = activeTask.title; 
+  vTitle.textContent = activeTask.title;
   vDesc.textContent = activeTask.desc||"No description";
   vPriority.textContent = activeTask.priority===1?"Must":activeTask.priority===2?"Important":"Normal";
-  timestamps.innerHTML = `Created: ${formatDate(activeTask.createdAt)}<br>Last edited: ${formatDate(activeTask.lastEdited)}`;
+  timestamps.innerHTML=`Created: ${formatDate(activeTask.createdAt)}<br>Last edited: ${formatDate(activeTask.lastEdited)}`;
 
-  eTitle.value = activeTask.title; eDesc.value = activeTask.desc; ePriority.value = activeTask.priority;
+  eTitle.value=activeTask.title; eDesc.value=activeTask.desc; ePriority.value=activeTask.priority;
 
-  // Hide/show read vs edit fields
   [vTitle,vDesc,vPriority,timestamps].forEach(el=>el.classList.toggle("hidden",editMode));
   [eTitle,eDesc,ePriority,batchSub,addSubBtn].forEach(el=>el.classList.toggle("hidden",!editMode));
 
-  // Subtasks logic
-  // Show in edit mode always, in view mode only if task has subtasks
-  subtasksSection.style.display = (editMode || activeTask.subtasks.length>0) ? "block" : "none";
+  subtasksSection.style.display = (editMode || activeTask.subtasks.length>0)?"block":"none";
 
   subtasks.innerHTML="";
   activeTask.subtasks.forEach((s,i)=>{
@@ -233,18 +246,18 @@ function renderDetails(){
     const middle = document.createElement("div"); middle.className="subtask-middle";
     const right = document.createElement("div"); right.className="subtask-right";
 
-    const c = document.createElement("input"); c.type="checkbox"; c.checked=s.done;
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=s.done;
     c.onchange=(e)=>{ s.done=c.checked; save(); e.stopPropagation(); };
     left.append(c);
 
     if(editMode){
-      const t = document.createElement("input"); t.type="text"; t.value=s.title;
+      const t=document.createElement("input"); t.type="text"; t.value=s.title;
       t.oninput=()=>{ s.title=t.value; activeTask.lastEdited=Date.now(); save(); renderDetails(); };
-      const del = document.createElement("button"); del.textContent="🗑";
+      const del=document.createElement("button"); del.textContent="🗑";
       del.onclick=()=>{ activeTask.subtasks.splice(i,1); activeTask.lastEdited=Date.now(); save(); renderDetails(); };
       middle.append(t); right.append(del);
     } else {
-      const t = document.createElement("div"); t.className="text-view"; t.textContent=s.title; middle.append(t);
+      const t=document.createElement("div"); t.className="text-view"; t.textContent=s.title; middle.append(t);
     }
 
     row.append(left,middle,right); subtasks.append(row);
@@ -254,33 +267,60 @@ function renderDetails(){
 function addSubtasks(){
   const lines = batchSub.value.split("\n").map(l=>l.trim()).filter(Boolean);
   lines.forEach(l=>activeTask.subtasks.push({title:l,done:false}));
-  activeTask.lastEdited = Date.now();
+  activeTask.lastEdited=Date.now();
   batchSub.value=""; renderDetails(); save();
+}
+
+// Swipe logic
+function attachSwipe(taskRow, task){
+  let startX=0, currentX=0, moving=false;
+  const threshold=80;
+  const bg=document.createElement("div"); bg.className="swipe-bg"; taskRow.prepend(bg);
+
+  taskRow.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; moving=true; });
+  taskRow.addEventListener("touchmove", e=>{
+    if(!moving) return;
+    currentX=e.touches[0].clientX; 
+    let deltaX=currentX-startX;
+    taskRow.style.transform=`translateX(${deltaX}px)`;
+    if(deltaX<0){ bg.style.background="#ff3b30"; bg.textContent="Edit / Reschedule / Delete"; }
+    else if(deltaX>0){ bg.style.background="#34C759"; bg.textContent=task.done?"Undo":"Done"; }
+  });
+  taskRow.addEventListener("touchend", e=>{
+    moving=false;
+    let deltaX=currentX-startX;
+    taskRow.style.transform="";
+    bg.textContent="";
+    if(deltaX>threshold){ task.done=!task.done; save(); render(); }
+    else if(deltaX<-threshold){ openDetails(task.id); }
+  });
 }
 
 function render(){
   tasks.sort((a,b)=>a.done-b.done);
-  const tasksDiv = document.getElementById("tasks"); tasksDiv.innerHTML="";
+  const tasksDiv=document.getElementById("tasks"); tasksDiv.innerHTML="";
   tasks.forEach(task=>{
-    const card = document.createElement("div"); card.className="task"+(task.done?" done":"");
-    const row = document.createElement("div"); row.className="task-row";
-    const left = document.createElement("div"); left.className="task-left";
-    const middle = document.createElement("div"); middle.className="task-middle";
-    const right = document.createElement("div"); right.className="task-right";
+    const card=document.createElement("div"); card.className="task"+(task.done?" done":"");
+    const row=document.createElement("div"); row.className="task-row";
+    const left=document.createElement("div"); left.className="task-left";
+    const middle=document.createElement("div"); middle.className="task-middle";
+    const right=document.createElement("div"); right.className="task-right";
 
-    const c = document.createElement("input"); c.type="checkbox"; c.checked=task.done;
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=task.done;
     c.onchange=(e)=>{ task.done=c.checked; save(); render(); e.stopPropagation(); };
     left.append(c);
 
-    const title = document.createElement("div"); title.className="task-title"; title.textContent=task.title;
+    const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title;
     title.onclick=(e)=>{ openDetails(task.id); e.stopPropagation(); };
     middle.append(title);
 
-    const dot = document.createElement("div"); dot.className="dot";
+    const dot=document.createElement("div"); dot.className="dot";
     dot.style.background=task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#ffcc00";
     right.append(dot);
 
     row.append(left,middle,right); card.append(row); tasksDiv.append(card);
+
+    attachSwipe(row, task);
   });
 }
 
