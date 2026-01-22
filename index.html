@@ -1,35 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>Today</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Today</title>
+
+<style>
+:root {
+  --must: #ff3b30;
+  --important: #ff9500;
+  --normal: #ffcc00;
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --text: #1c1c1e;
+  --muted: #8e8e93;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  padding: 16px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+#tasks {
+  padding: 12px;
+}
+
+.task {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.task.done {
+  opacity: 0.5;
+}
+
+.task-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.task-header input {
+  transform: scale(1.3);
+}
+
+.task-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.chevron {
+  font-size: 20px;
+  padding: 6px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.menu {
+  font-size: 22px;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.subtasks {
+  margin-top: 10px;
+  padding-left: 28px;
+  display: none;
+}
+
+.subtask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.subtask input {
+  transform: scale(1.2);
+}
+
+#addBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  padding: 12px;
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid #ddd;
+}
+
+#addBar input, #addBar select {
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+#addBar button {
+  padding: 10px 14px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  background: black;
+  color: white;
+}
+
+.priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.footer-space {
+  height: 90px;
+}
+</style>
 </head>
+
 <body>
 
-<header>
-  <h1>Today</h1>
-</header>
+<header>Today</header>
 
-<main id="taskList"></main>
+<div id="tasks"></div>
+<div class="footer-space"></div>
 
-<button id="addTaskBtn">＋ Add task</button>
-
-<!-- Modal -->
-<div id="modal" class="modal hidden">
-  <div class="modal-content">
-    <h2>Edit task</h2>
-    <input id="taskTitleInput" type="text" placeholder="Task title" />
-    <div id="subtaskEditor"></div>
-    <button id="addSubtaskBtn">+ Add subtask</button>
-    <div class="modal-actions">
-      <button id="saveTaskBtn">Save</button>
-      <button id="cancelTaskBtn">Cancel</button>
-    </div>
-  </div>
+<div id="addBar">
+  <input id="titleInput" placeholder="New task…" />
+  <select id="priorityInput">
+    <option value="3">Normal</option>
+    <option value="2">Important</option>
+    <option value="1">Must</option>
+  </select>
+  <button onclick="addTask()">+</button>
 </div>
 
-<script src="app.js"></script>
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+let expanded = new Set();
+
+function save() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function addTask() {
+  const title = titleInput.value.trim();
+  if (!title) return;
+
+  tasks.push({
+    id: Date.now(),
+    title,
+    priority: Number(priorityInput.value),
+    done: false,
+    subtasks: []
+  });
+
+  titleInput.value = "";
+  save();
+  render();
+}
+
+function toggleSubtask(task, sub) {
+  sub.done = !sub.done;
+  task.done = task.subtasks.length && task.subtasks.every(s => s.done);
+  if (task.done) expanded.delete(task.id);
+  save();
+  render();
+}
+
+function render() {
+  const list = document.getElementById("tasks");
+  list.innerHTML = "";
+
+  const sorted = [...tasks].sort((a,b)=>a.done-b.done);
+
+  sorted.forEach(task => {
+    const card = document.createElement("div");
+    card.className = "task" + (task.done ? " done" : "");
+
+    const header = document.createElement("div");
+    header.className = "task-header";
+
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = task.done;
+    check.onchange = () => {
+      task.done = check.checked;
+      if (task.done) expanded.delete(task.id);
+      save();
+      render();
+    };
+
+    const dot = document.createElement("div");
+    dot.className = "priority-dot";
+    dot.style.background =
+      task.priority === 1 ? "var(--must)" :
+      task.priority === 2 ? "var(--important)" :
+      "var(--normal)";
+
+    const title = document.createElement("div");
+    title.className = "task-title";
+    title.textContent = task.title;
+
+    const chev = document.createElement("div");
+    chev.className = "chevron";
+    chev.textContent = expanded.has(task.id) ? "⌄" : "›";
+    chev.onclick = () => {
+      expanded.has(task.id) ? expanded.delete(task.id) : expanded.add(task.id);
+      render();
+    };
+
+    const menu = document.createElement("div");
+    menu.className = "menu";
+    menu.textContent = "⋯";
+    menu.onclick = () => {
+      const action = prompt("edit / delete / sub");
+      if (action === "delete") {
+        tasks = tasks.filter(t => t.id !== task.id);
+      }
+      if (action === "edit") {
+        const t = prompt("Edit title", task.title);
+        if (t) task.title = t;
+      }
+      if (action === "sub") {
+        const s = prompt("Subtask");
+        if (s) task.subtasks.push({title:s, done:false});
+      }
+      save();
+      render();
+    };
+
+    header.append(check, dot, title, chev, menu);
+    card.append(header);
+
+    if (task.subtasks.length) {
+      const subs = document.createElement("div");
+      subs.className = "subtasks";
+      if (expanded.has(task.id)) subs.style.display = "block";
+
+      task.subtasks.forEach(sub => {
+        const row = document.createElement("div");
+        row.className = "subtask";
+
+        const c = document.createElement("input");
+        c.type = "checkbox";
+        c.checked = sub.done;
+        c.onchange = () => toggleSubtask(task, sub);
+
+        const t = document.createElement("div");
+        t.textContent = sub.title;
+
+        row.append(c, t);
+        subs.append(row);
+      });
+
+      card.append(subs);
+    }
+
+    list.append(card);
+  });
+}
+
+render();
+</script>
+
 </body>
 </html>
