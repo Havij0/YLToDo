@@ -132,8 +132,6 @@ header {
 /* Popup menu */
 .popup {
   position: absolute;
-  right: 16px;
-  top: 60px;
   background: white;
   border-radius: 16px;
   box-shadow: 0 12px 28px rgba(0,0,0,0.18);
@@ -164,13 +162,14 @@ header {
 /* Batch subtask textarea */
 #batchSub {
   width: 100%;
-  height: 120px;
+  max-height: 150px;
   font-size: 15px;
   padding: 10px;
   border-radius: 12px;
   border: 1px solid #ccc;
   resize: none;
   margin-bottom: 10px;
+  overflow-y: auto;
 }
 
 #batchDone {
@@ -293,6 +292,13 @@ function render() {
     if (openPopupTask === task.id) {
       const popup = document.createElement("div");
       popup.className = "popup";
+
+      // dynamic popup positioning
+      const rect = card.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      popup.style.top = spaceBelow < 160 ? (-160)+"px" : "100%";
+      popup.style.left = "0px";
+      popup.style.width = "180px";
 
       const mk = (txt, fn, danger=false) => {
         const b = document.createElement("div");
