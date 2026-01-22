@@ -1,148 +1,58 @@
-* {
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-body {
-  margin: 0;
-  background: #f5f5f7;
-  color: #111;
-}
-
-header {
-  padding: 16px;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-#taskList {
-  padding: 12px;
-  padding-bottom: 140px;
-}
-
-.task {
-  background: white;
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 12px;
-  transition: opacity 0.3s ease;
+.task-row {
   position: relative;
+  height: 64px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
 }
 
-.task.done {
-  opacity: 0.4;
+/* Action rail */
+.task-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 16px;
+  background: #f2f2f7;
 }
 
-.task-header {
+/* Action buttons */
+.action {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action.edit { background: #007AFF; color: white; }
+.action.schedule { background: #FF9500; color: white; }
+.action.delete { background: #FF3B30; color: white; }
+
+/* Sliding content */
+.task-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 0 16px;
+  background: white;
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
+/* Title safety */
 .task-title {
   flex: 1;
-  font-size: 17px;
-}
-
-.chevron {
-  font-size: 20px;
-  padding: 6px;
-  margin-right: 8px;
-  cursor: pointer;
-}
-
-.menu {
-  font-size: 20px;
-  padding: 6px;
-  cursor: pointer;
-}
-
-.subtasks {
-  margin-top: 12px;
-  padding-left: 32px;
-  display: none;
-}
-
-.subtask {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-input[type="checkbox"] {
-  width: 22px;
-  height: 22px;
-}
-
-#addTaskBtn {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  padding: 18px;
-  font-size: 18px;
-  border-radius: 18px;
-  border: none;
-  background: black;
-  color: white;
-}
-
-/* Modal */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  width: 90%;
-}
-
-#taskTitleInput {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  margin-bottom: 12px;
-}
-
-#subtaskEditor > div {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-#subtaskEditor input {
-  flex: 1;
-  padding: 8px;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.modal-actions button {
-  flex: 1;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 12px;
-  border: none;
-}
-
-#saveTaskBtn {
-  background: black;
-  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
