@@ -73,11 +73,15 @@ header button {
   display:flex;
   justify-content:flex-end;
   align-items:center;
-  padding:0 12px;
+  padding:0 8px;
   z-index:1;
-  color:#fff;
-  font-weight:600;
-  font-size:14px;
+}
+
+/* Swipe buttons */
+.swipe-btn {
+  width:44px; height:44px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  margin-left:8px; color:#fff; font-size:18px;
 }
 
 /* Add bar */
@@ -117,6 +121,8 @@ textarea { resize:none; }
 .subtask-row button { border:none; background:none; color:red; font-size:16px; flex-shrink:0; }
 
 #addSubBtn { width:100%; padding:12px; font-size:16px; border-radius:14px; background:#000; color:#fff; border:none; margin-top:8px; }
+
+#deleteTaskBtn { width:100%; padding:14px; font-size:16px; border-radius:14px; background:#ff3b30; color:#fff; border:none; margin-top:12px; }
 
 .timestamps { font-size:12px; color:#888; margin-top:12px; }
 </style>
@@ -174,6 +180,8 @@ textarea { resize:none; }
     <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add Subtask</button>
   </div>
 
+  <button id="deleteTaskBtn" class="hidden" onclick="deleteTask()">Delete Task</button>
+
   <div class="timestamps" id="timestamps"></div>
 </div>
 
@@ -211,6 +219,7 @@ function closeDetails(){ save(); details.classList.add("hidden"); today.classLis
 function toggleEdit(){
   editMode = !editMode;
   editBtn.textContent = editMode?"Done":"Edit";
+  deleteTaskBtn.classList.toggle("hidden",!editMode);
   if(!editMode){
     activeTask.title = eTitle.value;
     activeTask.desc = eDesc.value;
@@ -219,6 +228,14 @@ function toggleEdit(){
     save();
   }
   renderDetails();
+}
+
+function deleteTask(){
+  if(!confirm("Are you sure you want to delete this task?")) return;
+  tasks = tasks.filter(t=>t.id!==activeTask.id);
+  activeTask=null;
+  save();
+  closeDetails();
 }
 
 function formatDate(ts){
@@ -235,7 +252,7 @@ function renderDetails(){
   eTitle.value=activeTask.title; eDesc.value=activeTask.desc; ePriority.value=activeTask.priority;
 
   [vTitle,vDesc,vPriority,timestamps].forEach(el=>el.classList.toggle("hidden",editMode));
-  [eTitle,eDesc,ePriority,batchSub,addSubBtn].forEach(el=>el.classList.toggle("hidden",!editMode));
+  [eTitle,eDesc,ePriority,batchSub,addSubBtn,deleteTaskBtn].forEach(el=>el.classList.toggle("hidden",!editMode));
 
   subtasksSection.style.display = (editMode || activeTask.subtasks.length>0)?"block":"none";
 
@@ -271,29 +288,34 @@ function addSubtasks(){
   batchSub.value=""; renderDetails(); save();
 }
 
-// Swipe logic
+// Swipe logic with icons
 function attachSwipe(taskRow, task){
   let startX=0, currentX=0, moving=false;
   const threshold=80;
+
+  // Clear previous bg
+  taskRow.querySelectorAll(".swipe-bg").forEach(el=>el.remove());
+
   const bg=document.createElement("div"); bg.className="swipe-bg"; taskRow.prepend(bg);
+
+  const createButton=(icon,bgColor,action)=>{
+    const btn=document.createElement("div"); btn.className="swipe-btn"; btn.textContent=icon;
+    btn.style.background=bgColor; btn.onclick=(e)=>{ e.stopPropagation(); action(); };
+    bg.append(btn); return btn;
+  };
+
+  const editBtn=createButton("✏️","#007AFF",()=>openDetails(task.id));
+  const rescheduleBtn=createButton("📅","#FF9500",()=>openDetails(task.id));
+  const deleteBtn=createButton("🗑️","#FF3B30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); });
 
   taskRow.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; moving=true; });
   taskRow.addEventListener("touchmove", e=>{
     if(!moving) return;
-    currentX=e.touches[0].clientX; 
+    currentX=e.touches[0].clientX;
     let deltaX=currentX-startX;
     taskRow.style.transform=`translateX(${deltaX}px)`;
-    if(deltaX<0){ bg.style.background="#ff3b30"; bg.textContent="Edit / Reschedule / Delete"; }
-    else if(deltaX>0){ bg.style.background="#34C759"; bg.textContent=task.done?"Undo":"Done"; }
   });
-  taskRow.addEventListener("touchend", e=>{
-    moving=false;
-    let deltaX=currentX-startX;
-    taskRow.style.transform="";
-    bg.textContent="";
-    if(deltaX>threshold){ task.done=!task.done; save(); render(); }
-    else if(deltaX<-threshold){ openDetails(task.id); }
-  });
+  taskRow.addEventListener("touchend", e=>{ moving=false; taskRow.style.transform=""; });
 }
 
 function render(){
