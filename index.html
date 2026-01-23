@@ -1,253 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport"
-  content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.6</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Todo App v0.66</title>
 <style>
-/* ================= RESET / BASE ================= */
-* { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f2f2f7;
-  color: #111;
 }
+
 .hidden { display: none; }
 
-/* ================= HEADER ================= */
 header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 56px;
+  padding: 14px 16px;
+  font-size: 18px;
+  font-weight: 600;
   background: #fff;
   border-bottom: 1px solid #ddd;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  z-index: 20;
-}
-header .title {
-  font-size: 20px;
-  font-weight: 700;
-}
-header .version {
-  font-size: 12px;
-  color: #888;
 }
 
-/* ================= CONTENT ================= */
-#content {
-  padding-top: 68px;
-  padding-bottom: 110px;
+#versionLabel {
+  font-size:12px;
+  color:#888;
 }
 
-/* ================= TASK CARD ================= */
+header button {
+  font-size: 16px;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+#tasks { padding: 70px 12px 120px 12px; } /* top padding for header */
+
 .task {
   background: #fff;
-  margin: 10px 12px;
   border-radius: 16px;
+  margin-bottom: 12px;
   overflow: hidden;
   position: relative;
+  touch-action: pan-y;
 }
 
-.task.done { opacity: 0.45; }
+.task.done { opacity: 0.5; }
 
 .task-row {
   display: flex;
   align-items: center;
-  min-height: 52px;
-  padding: 0 14px;
-  background: #fff;
+  min-height: 48px;
+  padding: 0 12px;
+  transition: transform 0.2s ease;
+  background:#fff;
   position: relative;
-  z-index: 2;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  z-index:2;
 }
 
-.task-left { width: 36px; flex-shrink: 0; }
-.task-middle { flex: 1; min-width: 0; }
-.task-right { width: 20px; flex-shrink: 0; }
+.task-left { width: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.task-middle { flex: 1; min-width:0; margin: 0 8px; }
+.task-right { width: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-.task-title {
-  font-size: 16px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.task-row input[type="checkbox"] { width: 22px; height: 22px; margin:0; }
+.task-title { font-size: 16px; font-weight: 600; cursor: pointer; }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+.dot { width: 12px; height: 12px; border-radius: 50%; }
 
-/* ================= SWIPE ACTIONS ================= */
+/* Swipe background */
 .swipe-bg {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding-right: 10px;
-  background: #f2f2f7;
-  z-index: 1;
+  position:absolute;
+  inset:0;
+  border-radius:16px;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:0 8px;
+  z-index:1;
+  overflow:hidden;
 }
 
+/* Swipe buttons */
 .swipe-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  color: #fff;
-  font-size: 18px;
+  width:44px; height:44px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  margin-left:8px; color:#fff; font-size:18px;
+  flex-shrink:0;
 }
 
-/* ================= ADD BAR ================= */
+/* Add bar */
 #addBar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: #fff;
-  border-top: 1px solid #ddd;
-  padding: 10px 12px;
-  display: flex;
-  gap: 8px;
-  z-index: 20;
-}
-#addBar input, #addBar select {
-  flex: 1;
-  font-size: 16px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid #ccc;
-}
-#addBar button {
-  padding: 0 18px;
-  font-size: 22px;
-  border-radius: 14px;
-  border: none;
-  background: #000;
-  color: #fff;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; padding: 12px; display: flex; gap: 8px; border-top: 1px solid #ddd;
 }
 
-/* ================= DETAILS VIEW ================= */
+#addBar input, #addBar select { font-size:16px; padding:14px; border-radius:14px; border:1px solid #ccc; }
+#addBar button { padding:14px 18px; font-size:20px; border-radius:14px; border:none; background:#000; color:#fff; }
+
+/* Details screen */
 #details {
-  position: fixed;
-  inset: 0;
-  background: #f2f2f7;
-  z-index: 50;
-  overflow-y: auto;
+  position: fixed; inset:0; background:#f2f2f7; z-index:50; overflow-y:auto;
 }
 
-.section {
-  background: #fff;
-  margin: 12px;
-  padding: 16px;
-  border-radius: 16px;
-}
-.section h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
-  color: #666;
-}
+.section { background:#fff; margin:12px; padding:16px; border-radius:16px; }
+.section h3 { margin:0 0 8px 0; font-size:13px; color:#666; }
+.read-text { font-size:16px; line-height:1.4; min-height:24px; }
 
-.read {
-  font-size: 16px;
-  min-height: 24px;
-}
+input, textarea, select { width:100%; font-size:16px; padding:12px; border-radius:12px; border:1px solid #ccc; box-sizing:border-box; }
+textarea { resize:none; }
 
-input, textarea, select {
-  width: 100%;
-  font-size: 16px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-}
-
-textarea { resize: none; }
-
-/* ================= SUBTASKS ================= */
-.subtask {
+.subtask-row {
   display: flex;
   align-items: center;
+  min-height: 44px;
   gap: 8px;
   margin-bottom: 8px;
 }
-.subtask input[type="checkbox"] {
-  width: 20px; height: 20px;
-}
-.subtask .text {
-  flex: 1;
-  font-size: 16px;
-}
+.subtask-left, .subtask-right { flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.subtask-middle { flex:1; min-width:0; }
 
-#deleteBtn {
-  margin: 16px 12px;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 16px;
-  background: #ff3b30;
-  color: #fff;
-  border: none;
-}
+.subtask-row input[type="checkbox"] { width:20px; height:20px; margin:0; }
+.subtask-row input[type="text"] { flex:1; padding:8px 12px; border-radius:12px; border:1px solid #ccc; }
+.subtask-row .text-view { flex:1; font-size:16px; cursor:pointer; }
+.subtask-row button { border:none; background:none; color:red; font-size:16px; flex-shrink:0; }
 
-.timestamps {
-  margin: 0 12px 24px;
-  font-size: 12px;
-  color: #888;
-}
+#addSubBtn { width:100%; padding:12px; font-size:16px; border-radius:14px; background:#000; color:#fff; border:none; margin-top:8px; }
+
+#deleteTaskBtn { width:100%; padding:14px; font-size:16px; border-radius:14px; background:#ff3b30; color:#fff; border:none; margin-top:12px; }
+
+.timestamps { font-size:12px; color:#888; margin-top:12px; }
 </style>
 </head>
-
 <body>
 
-<header>
-  <div class="title">Today</div>
-  <div class="version">DEV v0.6</div>
-</header>
-
-<div id="content">
+<!-- TODAY -->
+<div id="today">
+  <header>
+    <span>Today</span>
+    <span id="versionLabel">v0.6</span>
+  </header>
   <div id="tasks"></div>
-</div>
-
-<div id="addBar">
-  <input id="newTitle" placeholder="New task…" />
-  <select id="newPriority">
-    <option value="3">Normal</option>
-    <option value="2">Important</option>
-    <option value="1">Must</option>
-  </select>
-  <button onclick="addTask()">+</button>
+  <div id="addBar">
+    <input id="newTitle" placeholder="New task…">
+    <select id="newPriority">
+      <option value="3">Normal</option>
+      <option value="2">Important</option>
+      <option value="1">Must</option>
+    </select>
+    <button onclick="addTask()">+</button>
+  </div>
 </div>
 
 <!-- DETAILS -->
 <div id="details" class="hidden">
   <header>
     <button onclick="closeDetails()">← Back</button>
-    <button onclick="toggleEdit()" id="editBtn">Edit</button>
+    <button id="editBtn" onclick="toggleEdit()">Edit</button>
   </header>
 
-  <div class="section">
+  <div class="section" id="titleSection">
     <h3>Title</h3>
-    <div id="vTitle" class="read"></div>
-    <input id="eTitle" class="hidden" />
+    <div id="vTitle" class="read-text"></div>
+    <input id="eTitle" class="hidden">
   </div>
 
-  <div class="section">
+  <div class="section" id="descSection">
     <h3>Description</h3>
-    <div id="vDesc" class="read"></div>
-    <textarea id="eDesc" class="hidden" rows="4"></textarea>
+    <div id="vDesc" class="read-text"></div>
+    <textarea id="eDesc" rows="4" class="hidden"></textarea>
   </div>
 
   <div class="section">
     <h3>Priority</h3>
-    <div id="vPriority" class="read"></div>
+    <div id="vPriority" class="read-text"></div>
     <select id="ePriority" class="hidden">
       <option value="1">Must</option>
       <option value="2">Important</option>
@@ -255,211 +183,186 @@ textarea { resize: none; }
     </select>
   </div>
 
-  <div class="section">
+  <div class="section" id="subtasksSection">
     <h3>Subtasks</h3>
     <div id="subtasks"></div>
-    <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
-    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
+    <textarea id="batchSub" class="hidden" placeholder="One subtask per line"></textarea>
+    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add Subtask</button>
   </div>
 
-  <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
+  <button id="deleteTaskBtn" class="hidden" onclick="deleteTask()">Delete Task</button>
+
   <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
-/* ================= STATE ================= */
-let tasks = JSON.parse(localStorage.getItem("tasks_v06") || "[]");
-let active = null;
-let editMode = false;
+let tasks = JSON.parse(localStorage.getItem("tasks")||"[]");
+let activeTask = null, editMode = false;
 
-function save() {
-  localStorage.setItem("tasks_v06", JSON.stringify(tasks));
-}
+function save(){ localStorage.setItem("tasks", JSON.stringify(tasks)); }
 
-/* ================= ADD / RENDER ================= */
-function addTask() {
-  const t = newTitle.value.trim();
-  if (!t) return;
+function addTask(){
+  const title = newTitle.value.trim(); if(!title) return;
   const now = Date.now();
   tasks.push({
-    id: now,
-    title: t,
+    id: Date.now(),
+    title,
     desc: "",
-    priority: +newPriority.value,
+    priority: Number(newPriority.value),
     done: false,
     subtasks: [],
-    created: now,
-    edited: now
+    createdAt: now,
+    lastEdited: now
   });
-  newTitle.value = "";
-  save(); render();
+  newTitle.value=""; save(); render();
 }
 
-function render() {
-  const list = document.getElementById("tasks");
-  list.innerHTML = "";
-  tasks.forEach(task => {
-    const card = document.createElement("div");
-    card.className = "task" + (task.done ? " done" : "");
-
-    const row = document.createElement("div");
-    row.className = "task-row";
-
-    const left = document.createElement("div");
-    left.className = "task-left";
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = task.done;
-    cb.onchange = e => {
-      task.done = cb.checked;
-      save(); render();
-      e.stopPropagation();
-    };
-    left.appendChild(cb);
-
-    const mid = document.createElement("div");
-    mid.className = "task-middle";
-    const title = document.createElement("div");
-    title.className = "task-title";
-    title.textContent = task.title;
-    title.onclick = () => openDetails(task.id);
-    mid.appendChild(title);
-
-    const right = document.createElement("div");
-    right.className = "task-right";
-    const dot = document.createElement("div");
-    dot.className = "dot";
-    dot.style.background =
-      task.priority === 1 ? "#ff3b30" :
-      task.priority === 2 ? "#ff9500" : "#34c759";
-    right.appendChild(dot);
-
-    row.append(left, mid, right);
-    card.appendChild(row);
-    list.appendChild(card);
-
-    attachSwipe(row, task);
-  });
-}
-
-/* ================= SWIPE ================= */
-function attachSwipe(row, task) {
-  let startX = 0;
-  let dx = 0;
-
-  const bg = document.createElement("div");
-  bg.className = "swipe-bg";
-
-  const edit = makeBtn("✏️", "#007aff", () => openDetails(task.id));
-  const del = makeBtn("🗑", "#ff3b30", () => {
-    tasks = tasks.filter(t => t.id !== task.id);
-    save(); render();
-  });
-
-  bg.append(edit, del);
-  row.parentNode.insertBefore(bg, row);
-
-  row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-  row.addEventListener("touchmove", e => {
-    dx = e.touches[0].clientX - startX;
-    if (dx < 0) {
-      row.style.transform = `translateX(${dx}px)`;
-      row.style.opacity = Math.max(0.4, 1 + dx / 120);
-    }
-  });
-  row.addEventListener("touchend", () => {
-    if (dx < -80) {
-      row.style.transform = "translateX(-120px)";
-    } else {
-      row.style.transform = "";
-      row.style.opacity = "";
-    }
-    dx = 0;
-  });
-}
-
-function makeBtn(icon, color, fn) {
-  const b = document.createElement("div");
-  b.className = "swipe-btn";
-  b.textContent = icon;
-  b.style.background = color;
-  b.onclick = e => { e.stopPropagation(); fn(); };
-  return b;
-}
-
-/* ================= DETAILS ================= */
-function openDetails(id) {
-  active = tasks.find(t => t.id === id);
-  editMode = false;
+function openDetails(id){
+  activeTask = tasks.find(t=>t.id===id);
+  editMode=false;
   renderDetails();
-  document.getElementById("details").classList.remove("hidden");
+  today.classList.add("hidden"); details.classList.remove("hidden");
 }
 
-function closeDetails() {
-  save(); render();
-  document.getElementById("details").classList.add("hidden");
-}
+function closeDetails(){ save(); details.classList.add("hidden"); today.classList.remove("hidden"); render(); }
 
-function toggleEdit() {
+function toggleEdit(){
   editMode = !editMode;
-  editBtn.textContent = editMode ? "Done" : "Edit";
-  if (!editMode) {
-    active.title = eTitle.value;
-    active.desc = eDesc.value;
-    active.priority = +ePriority.value;
-    active.edited = Date.now();
+  editBtn.textContent = editMode?"Done":"Edit";
+  deleteTaskBtn.classList.toggle("hidden",!editMode);
+  if(!editMode){
+    activeTask.title = eTitle.value;
+    activeTask.desc = eDesc.value;
+    activeTask.priority = Number(ePriority.value);
+    activeTask.lastEdited = Date.now();
     save();
   }
   renderDetails();
 }
 
-function deleteTask() {
-  tasks = tasks.filter(t => t.id !== active.id);
-  save(); closeDetails();
+function deleteTask(){
+  if(!confirm("Are you sure you want to delete this task?")) return;
+  tasks = tasks.filter(t=>t.id!==activeTask.id);
+  activeTask=null;
+  save();
+  closeDetails();
 }
 
-function renderDetails() {
-  vTitle.textContent = active.title;
-  vDesc.textContent = active.desc || "No description";
-  vPriority.textContent =
-    active.priority === 1 ? "Must" :
-    active.priority === 2 ? "Important" : "Normal";
+function formatDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+" "+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
 
-  eTitle.value = active.title;
-  eDesc.value = active.desc;
-  ePriority.value = active.priority;
+function renderDetails(){
+  vTitle.textContent = activeTask.title;
+  vDesc.textContent = activeTask.desc;
+  vPriority.textContent = activeTask.priority===1?"Must":activeTask.priority===2?"Important":"Normal";
+  timestamps.innerHTML=`Created: ${formatDate(activeTask.createdAt)}<br>Last edited: ${formatDate(activeTask.lastEdited)}`;
 
-  [vTitle, vDesc, vPriority].forEach(e => e.classList.toggle("hidden", editMode));
-  [eTitle, eDesc, ePriority, subInput, addSubBtn, deleteBtn]
-    .forEach(e => e.classList.toggle("hidden", !editMode));
+  eTitle.value=activeTask.title; eDesc.value=activeTask.desc; ePriority.value=activeTask.priority;
 
-  const sub = document.getElementById("subtasks");
-  sub.innerHTML = "";
-  active.subtasks.forEach(s => {
-    const r = document.createElement("div");
-    r.className = "subtask";
-    const c = document.createElement("input");
-    c.type = "checkbox";
-    c.checked = s.done;
-    c.onchange = () => { s.done = c.checked; save(); };
-    const t = document.createElement("div");
-    t.className = "text";
-    t.textContent = s.title;
-    r.append(c, t);
-    sub.appendChild(r);
+  [vTitle,vDesc,vPriority,timestamps].forEach(el=>el.classList.toggle("hidden",editMode));
+  [eTitle,eDesc,ePriority,batchSub,addSubBtn,deleteTaskBtn].forEach(el=>el.classList.toggle("hidden",!editMode));
+
+  // Hide description/subtask in view mode if empty
+  descSection.style.display = editMode || activeTask.desc? "block":"none";
+  subtasksSection.style.display = editMode || activeTask.subtasks.length>0?"block":"none";
+
+  subtasks.innerHTML="";
+  activeTask.subtasks.forEach((s,i)=>{
+    const row = document.createElement("div"); row.className="subtask-row";
+    const left = document.createElement("div"); left.className="subtask-left";
+    const middle = document.createElement("div"); middle.className="subtask-middle";
+    const right = document.createElement("div"); right.className="subtask-right";
+
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=s.done;
+    c.onchange=(e)=>{ s.done=c.checked; activeTask.done = activeTask.subtasks.every(st=>st.done); save(); e.stopPropagation(); renderDetails(); };
+    left.append(c);
+
+    if(editMode){
+      const t=document.createElement("input"); t.type="text"; t.value=s.title;
+      t.oninput=()=>{ s.title=t.value; activeTask.lastEdited=Date.now(); save(); renderDetails(); };
+      const del=document.createElement("button"); del.textContent="🗑";
+      del.onclick=()=>{ activeTask.subtasks.splice(i,1); activeTask.lastEdited=Date.now(); save(); renderDetails(); };
+      middle.append(t); right.append(del);
+    } else {
+      const t=document.createElement("div"); t.className="text-view"; t.textContent=s.title; middle.append(t);
+    }
+
+    row.append(left,middle,right); subtasks.append(row);
   });
-
-  timestamps.textContent =
-    `Created: ${new Date(active.created).toLocaleString()} · ` +
-    `Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 
-function addSubtasks() {
-  subInput.value.split("\n").filter(Boolean)
-    .forEach(t => active.subtasks.push({ title: t, done: false }));
-  subInput.value = "";
-  active.edited = Date.now();
-  renderDetails(); save();
+function addSubtasks(){
+  const lines = batchSub.value.split("\n").map(l=>l.trim()).filter(Boolean);
+  lines.forEach(l=>activeTask.subtasks.push({title:l,done:false}));
+  activeTask.lastEdited=Date.now();
+  batchSub.value=""; renderDetails(); save();
+}
+
+// Swipe logic with icons
+function attachSwipe(taskRow, task){
+  let startX=0, currentX=0, moving=false;
+  const threshold=80;
+
+  taskRow.querySelectorAll(".swipe-bg").forEach(el=>el.remove());
+
+  const bg=document.createElement("div"); bg.className="swipe-bg"; taskRow.prepend(bg);
+
+  const createButton=(icon,bgColor,action)=>{
+    const btn=document.createElement("div"); btn.className="swipe-btn"; btn.textContent=icon;
+    btn.style.background=bgColor; btn.onclick=(e)=>{ e.stopPropagation(); action(); };
+    bg.append(btn); return btn;
+  };
+
+  const editBtn=createButton("✏️","#007AFF",()=>openDetails(task.id));
+  const rescheduleBtn=createButton("📅","#FF9500",()=>openDetails(task.id));
+  const deleteBtn=createButton("🗑️","#FF3B30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); });
+
+  bg.style.opacity = 0; // hide until swipe
+
+  taskRow.addEventListener("touchstart", e=>{ startX=e.touches[0].clientX; moving=true; });
+  taskRow.addEventListener("touchmove", e=>{
+    if(!moving) return;
+    currentX=e.touches[0].clientX;
+    let deltaX=currentX-startX;
+    if(deltaX<0){ // swipe left to show actions
+      taskRow.style.transform=`translateX(${deltaX}px)`;
+      bg.style.opacity = 1;
+    } else { // swipe right to mark done
+      taskRow.style.transform=`translateX(${deltaX}px)`;
+    }
+  });
+  taskRow.addEventListener("touchend", e=>{ moving=false; taskRow.style.transform=""; bg.style.opacity=0; });
+}
+
+function render(){
+  tasks.sort((a,b)=>a.done-b.done);
+  const tasksDiv=document.getElementById("tasks"); tasksDiv.innerHTML="";
+  tasks.forEach(task=>{
+    const card=document.createElement("div"); card.className="task"+(task.done?" done":"");
+    const row=document.createElement("div"); row.className="task-row";
+    const left=document.createElement("div"); left.className="task-left";
+    const middle=document.createElement("div"); middle.className="task-middle";
+    const right=document.createElement("div"); right.className="task-right";
+
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=task.done;
+    c.onchange=(e)=>{ task.done=c.checked; save(); render(); e.stopPropagation(); };
+    left.append(c);
+
+    const title=document.createElement("div"); title.className="task-title"; 
+    title.textContent = task.title.length>40?task.title.slice(0,40)+"…":task.title; // truncate
+    title.onclick=(e)=>{ openDetails(task.id); e.stopPropagation(); };
+    middle.append(title);
+
+    const dot=document.createElement("div"); dot.className="dot";
+    dot.style.background=task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#ffcc00";
+    right.append(dot);
+
+    row.append(left,middle,right); card.append(row); tasksDiv.append(card);
+
+    attachSwipe(row, task);
+  });
 }
 
 render();
