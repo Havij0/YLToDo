@@ -3,145 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Todo App</title>
+<title>Todo App v0.6</title>
 
 <style>
-/* ---------- BASE ---------- */
+/* ===== BASE ===== */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f2f2f7;
   overflow: hidden;
 }
-
 .hidden { display: none; }
 
-/* ---------- HEADER ---------- */
+/* ===== HEADER ===== */
 header {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 52px;
-  padding: 0 16px;
-  font-size: 18px;
-  font-weight: 600;
   background: #fff;
   border-bottom: 1px solid #ddd;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
   z-index: 10;
 }
 
-/* ---------- TASK LIST ---------- */
+/* ===== TASK LIST ===== */
 #tasks {
   position: absolute;
   top: 52px;
-  bottom: 96px;
-  left: 0;
-  right: 0;
+  bottom: 84px;
+  left: 0; right: 0;
   padding: 12px;
   overflow-y: auto;
 }
 
+/* ===== TASK CARD ===== */
 .task {
-  background: #fff;
+  position: relative;
   border-radius: 16px;
   margin-bottom: 12px;
-  position: relative;
   overflow: hidden;
 }
+.task.done { opacity: 0.4; }
 
-.task.done {
-  opacity: 0.45;
-  filter: blur(0.3px);
-}
-
-/* ---------- SWIPE BACKGROUND ---------- */
-.swipe-bg {
+/* Action layer (behind) */
+.task-actions {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
   justify-content: flex-end;
+  align-items: center;
   padding-right: 12px;
+  gap: 10px;
   background: #f2f2f7;
 }
 
-.swipe-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+/* Buttons */
+.action-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 8px;
-  font-size: 18px;
   color: #fff;
-  pointer-events: none;
+  font-size: 18px;
 }
+.edit { background: #007aff; }
+.schedule { background: #ff9500; }
+.delete { background: #ff3b30; }
 
-.swipe-btn.edit { background: #007aff; }
-.swipe-btn.delete { background: #ff3b30; }
-
-/* ---------- TASK ROW ---------- */
+/* Foreground card */
 .task-row {
-  position: relative;
-  z-index: 2;
+  background: #fff;
+  min-height: 52px;
   display: flex;
   align-items: center;
-  min-height: 52px;
   padding: 0 12px;
-  background: #fff;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  touch-action: pan-y;
 }
 
-.task-left { width: 40px; }
-.task-middle { flex: 1; min-width: 0; }
-.task-right { width: 20px; }
+/* Layout */
+.task-left { width: 44px; display:flex; justify-content:center; }
+.task-middle { flex:1; overflow:hidden; }
+.task-right { width: 20px; display:flex; justify-content:center; }
 
 .task-title {
   font-size: 16px;
   font-weight: 600;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ---------- ADD BAR ---------- */
+.dot {
+  width: 12px; height: 12px; border-radius: 50%;
+}
+
+/* ===== ADD BAR ===== */
 #addBar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
+  height: 84px;
   background: #fff;
-  padding: 12px;
+  border-top: 1px solid #ddd;
   display: flex;
   gap: 8px;
-  border-top: 1px solid #ddd;
-  z-index: 10;
+  padding: 12px;
 }
 
 #addBar input, #addBar select {
   font-size: 16px;
-  padding: 14px;
+  padding: 12px;
   border-radius: 14px;
   border: 1px solid #ccc;
 }
 
 #addBar button {
-  padding: 14px 18px;
+  background: #000;
+  color: #fff;
   font-size: 20px;
   border-radius: 14px;
   border: none;
-  background: #000;
-  color: #fff;
+  padding: 0 18px;
 }
 
-/* ---------- DETAILS ---------- */
+/* ===== DETAILS PAGE ===== */
 #details {
   position: fixed;
   inset: 0;
@@ -157,6 +148,40 @@ header {
   border-radius: 16px;
 }
 
+.section h3 {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 8px;
+}
+
+.read-text { font-size: 16px; }
+
+textarea, input, select {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+}
+
+.subtask-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.subtask-row input[type="checkbox"] { width: 20px; height: 20px; }
+
+#deleteTaskBtn {
+  width: calc(100% - 24px);
+  margin: 12px;
+  background: #ff3b30;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+}
+
 .timestamps {
   font-size: 12px;
   color: #888;
@@ -167,99 +192,121 @@ header {
 
 <body>
 
-<!-- TODAY -->
-<div id="today">
-  <header><span>Today</span></header>
-  <div id="tasks"></div>
+<header>Today</header>
 
-  <div id="addBar">
-    <input id="newTitle" placeholder="New task…">
-    <select id="newPriority">
-      <option value="3">Normal</option>
-      <option value="2">Important</option>
-      <option value="1">Must</option>
-    </select>
-    <button onclick="addTask()">+</button>
+<div id="tasks"></div>
+
+<div id="addBar">
+  <input id="newTitle" placeholder="New task…">
+  <select id="newPriority">
+    <option value="3">Normal</option>
+    <option value="2">Important</option>
+    <option value="1">Must</option>
+  </select>
+  <button onclick="addTask()">+</button>
+</div>
+
+<!-- DETAILS -->
+<div id="details" class="hidden">
+  <header>
+    <button onclick="closeDetails()">← Back</button>
+    <button id="editBtn" onclick="toggleEdit()">Edit</button>
+  </header>
+
+  <div class="section">
+    <h3>Title</h3>
+    <div id="vTitle" class="read-text"></div>
+    <input id="eTitle" class="hidden">
   </div>
+
+  <div class="section">
+    <h3>Description</h3>
+    <div id="vDesc" class="read-text"></div>
+    <textarea id="eDesc" class="hidden"></textarea>
+  </div>
+
+  <button id="deleteTaskBtn" class="hidden" onclick="deleteTask()">Delete Task</button>
+
+  <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
-/* ---------- TEMP VERSION FLAG ---------- */
-const storage = sessionStorage;
+/* ===== VERSION ===== */
+const APP_VERSION = "v0.6";
+const DEV_RESET = false;
 
-/* ---------- STATE ---------- */
-let tasks = JSON.parse(storage.getItem("tasks") || "[]");
+console.log("Todo App", APP_VERSION);
+if (DEV_RESET) localStorage.clear();
 
-/* ---------- SAVE ---------- */
+/* ===== STATE ===== */
+let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+let activeTask = null;
+let editMode = false;
+
 function save() {
-  storage.setItem("tasks", JSON.stringify(tasks));
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-/* ---------- ADD TASK ---------- */
+/* ===== ADD TASK ===== */
 function addTask() {
   const title = newTitle.value.trim();
   if (!title) return;
   tasks.push({
     id: Date.now(),
     title,
-    done: false
+    desc: "",
+    priority: +newPriority.value,
+    done: false,
+    createdAt: Date.now()
   });
   newTitle.value = "";
   save();
   render();
 }
 
-/* ---------- SWIPE LOGIC ---------- */
-function attachSwipe(row, task) {
+/* ===== SWIPE HANDLER ===== */
+function attachSwipe(row, task, card) {
   let startX = 0;
-  let dx = 0;
-
-  const bg = document.createElement("div");
-  bg.className = "swipe-bg";
-
-  const edit = document.createElement("div");
-  edit.className = "swipe-btn edit";
-  edit.textContent = "✏️";
-  edit.onclick = e => { e.stopPropagation(); alert("Edit later"); };
-
-  const del = document.createElement("div");
-  del.className = "swipe-btn delete";
-  del.textContent = "🗑";
-  del.onclick = e => {
-    e.stopPropagation();
-    tasks = tasks.filter(t => t.id !== task.id);
-    save();
-    render();
-  };
-
-  bg.append(edit, del);
-  row.parentElement.append(bg);
+  let currentX = 0;
+  let swiping = false;
+  const ACTION_WIDTH = 170;
 
   row.addEventListener("touchstart", e => {
     startX = e.touches[0].clientX;
+    swiping = true;
   });
 
   row.addEventListener("touchmove", e => {
-    dx = e.touches[0].clientX - startX;
-    row.style.transform = `translateX(${dx}px)`;
+    if (!swiping) return;
+    currentX = e.touches[0].clientX;
+    let dx = currentX - startX;
+
+    if (dx < 0) {
+      row.style.transform = `translateX(${Math.max(dx, -ACTION_WIDTH)}px)`;
+    } else {
+      row.style.transform = `translateX(${Math.min(dx, 80)}px)`;
+      row.style.opacity = 1 - dx / 120;
+    }
   });
 
   row.addEventListener("touchend", () => {
-    if (dx < -80) {
-      row.style.transform = "translateX(-96px)";
-      bg.querySelectorAll(".swipe-btn").forEach(b => b.style.pointerEvents = "auto");
-    } else if (dx > 80) {
+    swiping = false;
+    let dx = currentX - startX;
+
+    if (dx > 60) {
       task.done = !task.done;
       save();
       render();
+    } else if (dx < -80) {
+      row.style.transform = `translateX(-${ACTION_WIDTH}px)`;
     } else {
       row.style.transform = "";
+      row.style.opacity = "";
     }
-    dx = 0;
   });
 }
 
-/* ---------- RENDER ---------- */
+/* ===== RENDER ===== */
 function render() {
   const list = document.getElementById("tasks");
   list.innerHTML = "";
@@ -268,30 +315,85 @@ function render() {
     const card = document.createElement("div");
     card.className = "task" + (task.done ? " done" : "");
 
+    const actions = document.createElement("div");
+    actions.className = "task-actions";
+    actions.innerHTML = `
+      <div class="action-btn edit">✏️</div>
+      <div class="action-btn schedule">📅</div>
+      <div class="action-btn delete">🗑</div>
+    `;
+
+    actions.children[0].onclick = () => openDetails(task.id);
+    actions.children[2].onclick = () => {
+      tasks = tasks.filter(t => t.id !== task.id);
+      save(); render();
+    };
+
     const row = document.createElement("div");
     row.className = "task-row";
+    row.innerHTML = `
+      <div class="task-left"><input type="checkbox" ${task.done?"checked":""}></div>
+      <div class="task-middle"><div class="task-title">${task.title}</div></div>
+      <div class="task-right"><div class="dot"></div></div>
+    `;
 
-    const left = document.createElement("div");
-    left.className = "task-left";
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = task.done;
-    cb.onchange = () => { task.done = cb.checked; save(); render(); };
-    left.append(cb);
+    row.onclick = e => {
+      if (Math.abs(currentX) < 5) openDetails(task.id);
+    };
 
-    const middle = document.createElement("div");
-    middle.className = "task-middle";
-    const title = document.createElement("div");
-    title.className = "task-title";
-    title.textContent = task.title;
-    middle.append(title);
+    attachSwipe(row, task, card);
 
-    row.append(left, middle);
-    card.append(row);
+    card.append(actions, row);
     list.append(card);
-
-    attachSwipe(row, task);
   });
+}
+
+/* ===== DETAILS ===== */
+function openDetails(id) {
+  activeTask = tasks.find(t => t.id === id);
+  editMode = false;
+  renderDetails();
+  details.classList.remove("hidden");
+}
+
+function closeDetails() {
+  details.classList.add("hidden");
+  render();
+}
+
+function toggleEdit() {
+  editMode = !editMode;
+  editBtn.textContent = editMode ? "Done" : "Edit";
+  deleteTaskBtn.classList.toggle("hidden", !editMode);
+
+  if (!editMode) {
+    activeTask.title = eTitle.value;
+    activeTask.desc = eDesc.value;
+    save();
+  }
+  renderDetails();
+}
+
+function deleteTask() {
+  tasks = tasks.filter(t => t.id !== activeTask.id);
+  save();
+  closeDetails();
+}
+
+function renderDetails() {
+  vTitle.textContent = activeTask.title;
+  vDesc.textContent = activeTask.desc || "No description";
+
+  eTitle.value = activeTask.title;
+  eDesc.value = activeTask.desc;
+
+  vTitle.classList.toggle("hidden", editMode);
+  vDesc.classList.toggle("hidden", editMode);
+  eTitle.classList.toggle("hidden", !editMode);
+  eDesc.classList.toggle("hidden", !editMode);
+
+  timestamps.textContent =
+    "Created: " + new Date(activeTask.createdAt).toLocaleString();
 }
 
 render();
