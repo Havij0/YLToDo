@@ -204,14 +204,14 @@ textarea { resize: none; }
     <option value="2">Important</option>
     <option value="1">Must</option>
   </select>
-  <button onclick="addTask()">+</button>
+  <button id="addBtn">+</button>
 </div>
 
 <!-- DETAILS -->
 <div id="details" class="hidden">
   <header>
-    <button onclick="closeDetails()">← Back</button>
-    <button id="editBtn" onclick="toggleEdit()">Edit</button>
+    <button id="backBtn">← Back</button>
+    <button id="editBtn">Edit</button>
   </header>
   <div class="spacer"></div>
 
@@ -231,14 +231,32 @@ textarea { resize: none; }
     <h3>Subtasks</h3>
     <div id="subtasks"></div>
     <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
-    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
+    <button id="addSubBtn" class="hidden">+ Add subtasks</button>
   </div>
 
-  <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
+  <button id="deleteBtn" class="hidden">Delete task</button>
   <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
+/* 🔒 EXPLICIT DOM BINDS — FIX */
+const details = document.getElementById("details");
+const editBtn = document.getElementById("editBtn");
+const backBtn = document.getElementById("backBtn");
+const addBtn = document.getElementById("addBtn");
+
+const vTitle = document.getElementById("vTitle");
+const vDesc = document.getElementById("vDesc");
+const eTitle = document.getElementById("eTitle");
+const eDesc = document.getElementById("eDesc");
+const secDesc = document.getElementById("secDesc");
+const secSubs = document.getElementById("secSubs");
+const subtasks = document.getElementById("subtasks");
+const subInput = document.getElementById("subInput");
+const addSubBtn = document.getElementById("addSubBtn");
+const deleteBtn = document.getElementById("deleteBtn");
+const timestamps = document.getElementById("timestamps");
+
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 const tasksDiv = document.getElementById("tasks");
@@ -247,23 +265,76 @@ let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
 
-/* SAVE */
-function save() { localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
+function save() {
+  localStorage.setItem("tasks_v064", JSON.stringify(tasks));
+}
 
 /* ADD TASK */
-function addTask() {
+addBtn.onclick = () => {
   const t = newTitle.value.trim();
   if (!t) return;
   const now = Date.now();
   tasks.push({
-    id: now, title: t, desc: "", priority: +newPriority.value,
-    done: false, subtasks: [], created: now, edited: now
+    id: now,
+    title: t,
+    desc: "",
+    priority: +newPriority.value,
+    done: false,
+    subtasks: [],
+    created: now,
+    edited: now
   });
   newTitle.value = "";
-  save(); render();
+  save();
+  render();
+};
+
+/* DETAILS */
+backBtn.onclick = () => {
+  save();
+  render();
+  details.classList.add("hidden");
+};
+
+editBtn.onclick = () => {
+  if (editMode) {
+    active.title = eTitle.value.trim();
+    active.desc = eDesc.value.trim();
+    active.edited = Date.now();
+    save();
+  }
+  editMode = !editMode;
+  editBtn.textContent = editMode ? "Done" : "Edit";
+  renderDetails();
+};
+
+/* RENDER DETAILS */
+function renderDetails() {
+  vTitle.textContent = active.title;
+  vDesc.textContent = active.desc;
+  eTitle.value = active.title;
+  eDesc.value = active.desc;
+
+  secDesc.classList.toggle("hidden", !editMode && !active.desc);
+  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
+
+  [vTitle, vDesc].forEach(e => e.classList.toggle("hidden", editMode));
+  [eTitle, eDesc, subInput, addSubBtn, deleteBtn]
+    .forEach(e => e.classList.toggle("hidden", !editMode));
+
+  subtasks.innerHTML = "";
+  active.subtasks.forEach(s => {
+    const r = document.createElement("div");
+    r.className = "subtask";
+    r.innerHTML = `<input type="checkbox" ${s.done ? "checked" : ""}><div class="text">${s.title}</div>`;
+    subtasks.append(r);
+  });
+
+  timestamps.textContent =
+    `Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 
-/* RENDER LIST */
+/* RENDER LIST (unchanged) */
 function render() {
   tasksDiv.innerHTML = "";
   tasks.forEach(task => {
@@ -284,19 +355,33 @@ function render() {
     const row = document.createElement("div");
     row.className = "task-row";
 
-    const left = document.createElement("div"); left.className = "task-left";
-    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = task.done;
-    cb.onchange = e => { task.done = cb.checked; save(); render(); e.stopPropagation(); };
+    const left = document.createElement("div");
+    left.className = "task-left";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = task.done;
+    cb.onchange = e => {
+      task.done = cb.checked;
+      save(); render();
+      e.stopPropagation();
+    };
     left.append(cb);
 
-    const mid = document.createElement("div"); mid.className = "task-middle";
-    const title = document.createElement("div"); title.className = "task-title"; title.textContent = task.title;
+    const mid = document.createElement("div");
+    mid.className = "task-middle";
+    const title = document.createElement("div");
+    title.className = "task-title";
+    title.textContent = task.title;
     title.onclick = () => openDetails(task.id);
     mid.append(title);
 
-    const right = document.createElement("div"); right.className = "task-right";
-    const dot = document.createElement("div"); dot.className = "dot";
-    dot.style.background = task.priority === 1 ? "#ff3b30" : task.priority === 2 ? "#ff9500" : "#34c759";
+    const right = document.createElement("div");
+    right.className = "task-right";
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    dot.style.background =
+      task.priority === 1 ? "#ff3b30" :
+      task.priority === 2 ? "#ff9500" : "#34c759";
     right.append(dot);
 
     row.append(left, mid, right);
@@ -305,6 +390,14 @@ function render() {
 
     attachSwipe(row);
   });
+}
+
+function openDetails(id) {
+  active = tasks.find(t => t.id === id);
+  editMode = false;
+  editBtn.textContent = "Edit";
+  renderDetails();
+  details.classList.remove("hidden");
 }
 
 /* SWIPE */
@@ -318,7 +411,11 @@ function attachSwipe(row) {
       row.style.opacity = Math.max(0.4, 1 + dx / 120);
     }
   });
-  row.addEventListener("touchend", () => { row.style.transform = ""; row.style.opacity = ""; dx = 0; });
+  row.addEventListener("touchend", () => {
+    row.style.transform = "";
+    row.style.opacity = "";
+    dx = 0;
+  });
 }
 function swipeBtn(icon, color, fn) {
   const b = document.createElement("div");
@@ -327,57 +424,6 @@ function swipeBtn(icon, color, fn) {
   b.style.background = color;
   b.onclick = e => { e.stopPropagation(); fn(); };
   return b;
-}
-
-/* DETAILS */
-function openDetails(id) { active = tasks.find(t => t.id === id); editMode = false; renderDetails(); details.classList.remove("hidden"); }
-function closeDetails() { save(); render(); details.classList.add("hidden"); }
-
-/* ✅ FIXED EDIT ISSUE */
-function toggleEdit() {
-  if (editMode) {
-    // Save title and description BEFORE toggling edit mode
-    active.title = eTitle.value.trim();
-    active.desc = eDesc.value.trim();
-    active.edited = Date.now();
-    save();
-  }
-  editMode = !editMode;
-  editBtn.textContent = editMode ? "Done" : "Edit";
-  renderDetails();
-}
-
-function deleteTask() { tasks = tasks.filter(t => t.id !== active.id); save(); closeDetails(); }
-
-function renderDetails() {
-  vTitle.textContent = active.title;
-  vDesc.textContent = active.desc;
-  eTitle.value = active.title;
-  eDesc.value = active.desc;
-
-  secDesc.classList.toggle("hidden", !editMode && !active.desc);
-  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
-
-  [vTitle, vDesc].forEach(e => e.classList.toggle("hidden", editMode));
-  [eTitle, eDesc, subInput, addSubBtn, deleteBtn].forEach(e => e.classList.toggle("hidden", !editMode));
-
-  subtasks.innerHTML = "";
-  active.subtasks.forEach(s => {
-    const r = document.createElement("div");
-    r.className = "subtask";
-    r.innerHTML = `<input type="checkbox" ${s.done ? "checked" : ""}><div class="text">${s.title}</div>`;
-    subtasks.append(r);
-  });
-
-  timestamps.textContent =
-    `Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
-}
-
-function addSubtasks() {
-  subInput.value.split("\n").filter(Boolean).forEach(t => active.subtasks.push({ title: t, done: false }));
-  subInput.value = "";
-  active.edited = Date.now();
-  save(); renderDetails();
 }
 
 render();
