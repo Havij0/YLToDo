@@ -247,9 +247,8 @@ let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
 
-function save() {
-  localStorage.setItem("tasks_v064", JSON.stringify(tasks));
-}
+/* SAVE */
+function save() { localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
 
 /* ADD TASK */
 function addTask() {
@@ -257,21 +256,14 @@ function addTask() {
   if (!t) return;
   const now = Date.now();
   tasks.push({
-    id: now,
-    title: t,
-    desc: "",
-    priority: +newPriority.value,
-    done: false,
-    subtasks: [],
-    created: now,
-    edited: now
+    id: now, title: t, desc: "", priority: +newPriority.value,
+    done: false, subtasks: [], created: now, edited: now
   });
   newTitle.value = "";
-  save();
-  render();
+  save(); render();
 }
 
-/* RENDER */
+/* RENDER LIST */
 function render() {
   tasksDiv.innerHTML = "";
   tasks.forEach(task => {
@@ -292,82 +284,59 @@ function render() {
     const row = document.createElement("div");
     row.className = "task-row";
 
-    let locked = false;
-
-    row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-    let startX = 0, dx = 0;
-
-    row.addEventListener("touchmove", e => {
-      dx = e.touches[0].clientX - startX;
-      if (dx < 0) {
-        row.style.transform = `translateX(${dx}px)`;
-        row.style.opacity = Math.max(0.4, 1 + dx / 120);
-      }
-    });
-
-    row.addEventListener("touchend", () => {
-      if (dx < -80) {
-        row.style.transform = "translateX(-120px)";
-        row.style.opacity = "0.4";
-        locked = true;
-      } else {
-        row.style.transform = "";
-        row.style.opacity = "";
-        locked = false;
-      }
-      dx = 0;
-    });
-
-    const left = document.createElement("div");
-    left.className = "task-left";
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = task.done;
-    cb.onchange = e => {
-      task.done = cb.checked;
-      save(); render();
-      e.stopPropagation();
-    };
+    const left = document.createElement("div"); left.className = "task-left";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = task.done;
+    cb.onchange = e => { task.done = cb.checked; save(); render(); e.stopPropagation(); };
     left.append(cb);
 
-    const mid = document.createElement("div");
-    mid.className = "task-middle";
-    const title = document.createElement("div");
-    title.className = "task-title";
-    title.textContent = task.title;
+    const mid = document.createElement("div"); mid.className = "task-middle";
+    const title = document.createElement("div"); title.className = "task-title"; title.textContent = task.title;
     title.onclick = () => openDetails(task.id);
     mid.append(title);
 
-    const right = document.createElement("div");
-    right.className = "task-right";
-    const dot = document.createElement("div");
-    dot.className = "dot";
-    dot.style.background =
-      task.priority === 1 ? "#ff3b30" :
-      task.priority === 2 ? "#ff9500" : "#34c759";
+    const right = document.createElement("div"); right.className = "task-right";
+    const dot = document.createElement("div"); dot.className = "dot";
+    dot.style.background = task.priority === 1 ? "#ff3b30" : task.priority === 2 ? "#ff9500" : "#34c759";
     right.append(dot);
 
     row.append(left, mid, right);
     card.append(bg, row);
     tasksDiv.append(card);
+
+    attachSwipe(row);
   });
 }
 
+/* SWIPE */
+function attachSwipe(row) {
+  let startX = 0, dx = 0;
+  row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+  row.addEventListener("touchmove", e => {
+    dx = e.touches[0].clientX - startX;
+    if (dx < 0) {
+      row.style.transform = `translateX(${dx}px)`;
+      row.style.opacity = Math.max(0.4, 1 + dx / 120);
+    }
+  });
+  row.addEventListener("touchend", () => { row.style.transform = ""; row.style.opacity = ""; dx = 0; });
+}
+function swipeBtn(icon, color, fn) {
+  const b = document.createElement("div");
+  b.className = "swipe-btn";
+  b.textContent = icon;
+  b.style.background = color;
+  b.onclick = e => { e.stopPropagation(); fn(); };
+  return b;
+}
+
 /* DETAILS */
-function openDetails(id) {
-  active = tasks.find(t => t.id === id);
-  editMode = false;
-  renderDetails();
-  details.classList.remove("hidden");
-}
+function openDetails(id) { active = tasks.find(t => t.id === id); editMode = false; renderDetails(); details.classList.remove("hidden"); }
+function closeDetails() { save(); render(); details.classList.add("hidden"); }
 
-function closeDetails() {
-  save(); render();
-  details.classList.add("hidden");
-}
-
+/* ✅ FIXED EDIT ISSUE */
 function toggleEdit() {
   if (editMode) {
+    // Save title and description BEFORE toggling edit mode
     active.title = eTitle.value.trim();
     active.desc = eDesc.value.trim();
     active.edited = Date.now();
@@ -378,10 +347,7 @@ function toggleEdit() {
   renderDetails();
 }
 
-function deleteTask() {
-  tasks = tasks.filter(t => t.id !== active.id);
-  save(); closeDetails();
-}
+function deleteTask() { tasks = tasks.filter(t => t.id !== active.id); save(); closeDetails(); }
 
 function renderDetails() {
   vTitle.textContent = active.title;
@@ -393,14 +359,13 @@ function renderDetails() {
   secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
 
   [vTitle, vDesc].forEach(e => e.classList.toggle("hidden", editMode));
-  [eTitle, eDesc, subInput, addSubBtn, deleteBtn]
-    .forEach(e => e.classList.toggle("hidden", !editMode));
+  [eTitle, eDesc, subInput, addSubBtn, deleteBtn].forEach(e => e.classList.toggle("hidden", !editMode));
 
   subtasks.innerHTML = "";
   active.subtasks.forEach(s => {
     const r = document.createElement("div");
     r.className = "subtask";
-    r.innerHTML = `<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
+    r.innerHTML = `<input type="checkbox" ${s.done ? "checked" : ""}><div class="text">${s.title}</div>`;
     subtasks.append(r);
   });
 
@@ -409,25 +374,10 @@ function renderDetails() {
 }
 
 function addSubtasks() {
-  /* 🔧 FIX: persist description BEFORE mutating subtasks */
-  active.desc = eDesc.value.trim();
-  active.edited = Date.now();
-
-  subInput.value.split("\n").filter(Boolean)
-    .forEach(t => active.subtasks.push({ title: t, done: false }));
-
+  subInput.value.split("\n").filter(Boolean).forEach(t => active.subtasks.push({ title: t, done: false }));
   subInput.value = "";
-  save();
-  renderDetails();
-}
-
-function swipeBtn(icon, color, fn) {
-  const b = document.createElement("div");
-  b.className = "swipe-btn";
-  b.textContent = icon;
-  b.style.background = color;
-  b.onclick = e => { e.stopPropagation(); fn(); };
-  return b;
+  active.edited = Date.now();
+  save(); renderDetails();
 }
 
 render();
