@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport"
   content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.6.1</title>
+<title>Todo App – v0.6.2</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -16,7 +16,7 @@ body {
 }
 .hidden { display: none; }
 
-/* ================= HEADER ================= */
+/* HEADER */
 header {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -29,22 +29,16 @@ header {
   padding: 0 16px;
   z-index: 20;
 }
-header .title {
-  font-size: 20px;
-  font-weight: 700;
-}
-header .version {
-  font-size: 12px;
-  color: #888;
-}
+header .title { font-size: 20px; font-weight: 700; }
+header .version { font-size: 12px; color: #888; }
 
-/* ================= CONTENT ================= */
+/* CONTENT */
 #content {
   padding-top: 72px;
   padding-bottom: 120px;
 }
 
-/* ================= TASK CARD ================= */
+/* TASK */
 .task {
   background: #fff;
   margin: 10px 12px;
@@ -65,9 +59,9 @@ header .version {
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
-.task-left { width: 36px; }
+.task-left { width: 36px; flex-shrink: 0; }
 .task-middle { flex: 1; min-width: 0; }
-.task-right { width: 20px; }
+.task-right { width: 20px; flex-shrink: 0; }
 
 .task-title {
   font-size: 16px;
@@ -75,6 +69,7 @@ header .version {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 .dot {
@@ -83,7 +78,7 @@ header .version {
   border-radius: 50%;
 }
 
-/* ================= SWIPE ACTIONS ================= */
+/* SWIPE */
 .swipe-bg {
   position: absolute;
   inset: 0;
@@ -107,7 +102,7 @@ header .version {
   font-size: 18px;
 }
 
-/* ================= ADD BAR ================= */
+/* ADD BAR */
 #addBar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
@@ -118,7 +113,6 @@ header .version {
   gap: 8px;
   z-index: 20;
 }
-
 #addBar input, #addBar select {
   flex: 1;
   font-size: 16px;
@@ -126,7 +120,6 @@ header .version {
   border-radius: 14px;
   border: 1px solid #ccc;
 }
-
 #addBar button {
   padding: 0 18px;
   font-size: 22px;
@@ -136,7 +129,7 @@ header .version {
   color: #fff;
 }
 
-/* ================= DETAILS VIEW ================= */
+/* DETAILS */
 #details {
   position: fixed;
   inset: 0;
@@ -144,10 +137,7 @@ header .version {
   z-index: 50;
   overflow-y: auto;
 }
-
-#details .spacer {
-  height: 72px; /* FIX: pushes content below header */
-}
+#details .spacer { height: 72px; }
 
 .section {
   background: #fff;
@@ -160,11 +150,7 @@ header .version {
   font-size: 13px;
   color: #666;
 }
-
-.read {
-  font-size: 16px;
-  min-height: 24px;
-}
+.read { font-size: 16px; }
 
 input, textarea, select {
   width: 100%;
@@ -173,23 +159,17 @@ input, textarea, select {
   border-radius: 12px;
   border: 1px solid #ccc;
 }
-
 textarea { resize: none; }
 
-/* ================= SUBTASKS ================= */
+/* SUBTASKS */
 .subtask {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
-.subtask input[type="checkbox"] {
-  width: 20px; height: 20px;
-}
-.subtask .text {
-  flex: 1;
-  font-size: 16px;
-}
+.subtask input { width: 20px; height: 20px; }
+.subtask .text { flex: 1; }
 
 #deleteBtn {
   margin: 16px 12px;
@@ -213,7 +193,7 @@ textarea { resize: none; }
 
 <header>
   <div class="title">Today</div>
-  <div class="version">DEV v0.6.1</div>
+  <div class="version">DEV v0.6.2</div>
 </header>
 
 <div id="content">
@@ -234,45 +214,27 @@ textarea { resize: none; }
 <div id="details" class="hidden">
   <header>
     <button onclick="closeDetails()">← Back</button>
-    <button onclick="toggleEdit()" id="editBtn">Edit</button>
+    <button id="editBtn" onclick="toggleEdit()">Edit</button>
   </header>
-
   <div class="spacer"></div>
 
-  <div class="section">
+  <div class="section" id="secTitle">
     <h3>Title</h3>
     <div id="vTitle" class="read"></div>
-    <input id="eTitle" class="hidden" />
+    <input id="eTitle" class="hidden">
   </div>
 
-  <div class="section">
+  <div class="section hidden" id="secDesc">
     <h3>Description</h3>
     <div id="vDesc" class="read"></div>
     <textarea id="eDesc" class="hidden" rows="4"></textarea>
   </div>
 
-  <div class="section">
-    <h3>Priority</h3>
-    <div id="vPriority" class="read"></div>
-    <select id="ePriority" class="hidden">
-      <option value="1">Must</option>
-      <option value="2">Important</option>
-      <option value="3">Normal</option>
-    </select>
-  </div>
-
-  <div class="section">
+  <div class="section hidden" id="secSubs">
     <h3>Subtasks</h3>
     <div id="subtasks"></div>
     <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
     <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
-  </div>
-
-  <div class="section">
-    <h3>Schedule</h3>
-    <div class="read">Not scheduled</div>
-    <!-- Reschedule button preserved -->
-    <button style="margin-top:8px;" onclick="alert('Reschedule – coming later')">📅 Reschedule</button>
   </div>
 
   <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
@@ -280,12 +242,12 @@ textarea { resize: none; }
 </div>
 
 <script>
-let tasks = JSON.parse(localStorage.getItem("tasks_v06") || "[]");
+let tasks = JSON.parse(localStorage.getItem("tasks_v062") || "[]");
 let active = null;
 let editMode = false;
 
 function save() {
-  localStorage.setItem("tasks_v06", JSON.stringify(tasks));
+  localStorage.setItem("tasks_v062", JSON.stringify(tasks));
 }
 
 function addTask() {
@@ -309,6 +271,7 @@ function addTask() {
 function render() {
   const list = document.getElementById("tasks");
   list.innerHTML = "";
+
   tasks.forEach(task => {
     const card = document.createElement("div");
     card.className = "task" + (task.done ? " done" : "");
@@ -316,6 +279,8 @@ function render() {
     const row = document.createElement("div");
     row.className = "task-row";
 
+    const left = document.createElement("div");
+    left.className = "task-left";
     const cb = document.createElement("input");
     cb.type = "checkbox";
     cb.checked = task.done;
@@ -324,42 +289,35 @@ function render() {
       save(); render();
       e.stopPropagation();
     };
+    left.append(cb);
 
+    const mid = document.createElement("div");
+    mid.className = "task-middle";
     const title = document.createElement("div");
     title.className = "task-title";
     title.textContent = task.title;
     title.onclick = () => openDetails(task.id);
+    mid.append(title);
 
+    const right = document.createElement("div");
+    right.className = "task-right";
     const dot = document.createElement("div");
     dot.className = "dot";
     dot.style.background =
       task.priority === 1 ? "#ff3b30" :
       task.priority === 2 ? "#ff9500" : "#34c759";
+    right.append(dot);
 
-    row.append(cb, title, dot);
-    card.appendChild(row);
-    list.appendChild(card);
+    row.append(left, mid, right);
+    card.append(row);
+    list.append(card);
 
-    attachSwipe(row, task);
+    attachSwipe(row);
   });
 }
 
-function attachSwipe(row, task) {
+function attachSwipe(row) {
   let startX = 0, dx = 0;
-
-  const bg = document.createElement("div");
-  bg.className = "swipe-bg";
-
-  bg.append(
-    makeBtn("✏️", "#007aff", () => openDetails(task.id)),
-    makeBtn("📅", "#ff9500", () => alert("Reschedule – coming later")),
-    makeBtn("🗑", "#ff3b30", () => {
-      tasks = tasks.filter(t => t.id !== task.id);
-      save(); render();
-    })
-  );
-
-  row.parentNode.insertBefore(bg, row);
 
   row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
   row.addEventListener("touchmove", e => {
@@ -370,19 +328,10 @@ function attachSwipe(row, task) {
     }
   });
   row.addEventListener("touchend", () => {
-    if (dx < -120) row.style.transform = "translateX(-160px)";
-    else row.style.transform = "";
+    row.style.transform = "";
+    row.style.opacity = "";
     dx = 0;
   });
-}
-
-function makeBtn(icon, color, fn) {
-  const b = document.createElement("div");
-  b.className = "swipe-btn";
-  b.textContent = icon;
-  b.style.background = color;
-  b.onclick = e => { e.stopPropagation(); fn(); };
-  return b;
 }
 
 function openDetails(id) {
@@ -403,7 +352,6 @@ function toggleEdit() {
   if (!editMode) {
     active.title = eTitle.value;
     active.desc = eDesc.value;
-    active.priority = +ePriority.value;
     active.edited = Date.now();
   }
   save(); renderDetails();
@@ -416,26 +364,24 @@ function deleteTask() {
 
 function renderDetails() {
   vTitle.textContent = active.title;
-  vDesc.textContent = active.desc || "—";
-  vPriority.textContent =
-    active.priority === 1 ? "Must" :
-    active.priority === 2 ? "Important" : "Normal";
+  vDesc.textContent = active.desc;
 
   eTitle.value = active.title;
   eDesc.value = active.desc;
-  ePriority.value = active.priority;
 
-  [vTitle, vDesc, vPriority].forEach(e => e.classList.toggle("hidden", editMode));
-  [eTitle, eDesc, ePriority, subInput, addSubBtn, deleteBtn]
+  secDesc.classList.toggle("hidden", !editMode && !active.desc);
+  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
+
+  [vTitle, vDesc].forEach(e => e.classList.toggle("hidden", editMode));
+  [eTitle, eDesc, subInput, addSubBtn, deleteBtn]
     .forEach(e => e.classList.toggle("hidden", !editMode));
 
-  const sub = document.getElementById("subtasks");
-  sub.innerHTML = "";
+  subtasks.innerHTML = "";
   active.subtasks.forEach(s => {
     const r = document.createElement("div");
     r.className = "subtask";
     r.innerHTML = `<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
-    sub.appendChild(r);
+    subtasks.append(r);
   });
 
   timestamps.textContent =
