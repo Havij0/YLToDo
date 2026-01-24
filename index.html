@@ -190,7 +190,7 @@ textarea { resize: none; }
 
 <header>
   <div class="title">Today</div>
-  <div class="version">DEV v0.6.4</div>
+  <div class="version">LOCKED v0.6.4</div>
 </header>
 
 <div id="content">
@@ -204,14 +204,14 @@ textarea { resize: none; }
     <option value="2">Important</option>
     <option value="1">Must</option>
   </select>
-  <button id="addBtn">+</button>
+  <button onclick="addTask()">+</button>
 </div>
 
 <!-- DETAILS -->
 <div id="details" class="hidden">
   <header>
-    <button id="backBtn">← Back</button>
-    <button id="editBtn">Edit</button>
+    <button onclick="closeDetails()">← Back</button>
+    <button id="editBtn" onclick="toggleEdit()">Edit</button>
   </header>
   <div class="spacer"></div>
 
@@ -231,32 +231,14 @@ textarea { resize: none; }
     <h3>Subtasks</h3>
     <div id="subtasks"></div>
     <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
-    <button id="addSubBtn" class="hidden">+ Add subtasks</button>
+    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
   </div>
 
-  <button id="deleteBtn" class="hidden">Delete task</button>
+  <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
   <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
-/* 🔒 EXPLICIT DOM BINDS — FIX */
-const details = document.getElementById("details");
-const editBtn = document.getElementById("editBtn");
-const backBtn = document.getElementById("backBtn");
-const addBtn = document.getElementById("addBtn");
-
-const vTitle = document.getElementById("vTitle");
-const vDesc = document.getElementById("vDesc");
-const eTitle = document.getElementById("eTitle");
-const eDesc = document.getElementById("eDesc");
-const secDesc = document.getElementById("secDesc");
-const secSubs = document.getElementById("secSubs");
-const subtasks = document.getElementById("subtasks");
-const subInput = document.getElementById("subInput");
-const addSubBtn = document.getElementById("addSubBtn");
-const deleteBtn = document.getElementById("deleteBtn");
-const timestamps = document.getElementById("timestamps");
-
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 const tasksDiv = document.getElementById("tasks");
@@ -270,7 +252,7 @@ function save() {
 }
 
 /* ADD TASK */
-addBtn.onclick = () => {
+function addTask() {
   const t = newTitle.value.trim();
   if (!t) return;
   const now = Date.now();
@@ -287,54 +269,9 @@ addBtn.onclick = () => {
   newTitle.value = "";
   save();
   render();
-};
-
-/* DETAILS */
-backBtn.onclick = () => {
-  save();
-  render();
-  details.classList.add("hidden");
-};
-
-editBtn.onclick = () => {
-  if (editMode) {
-    active.title = eTitle.value.trim();
-    active.desc = eDesc.value.trim();
-    active.edited = Date.now();
-    save();
-  }
-  editMode = !editMode;
-  editBtn.textContent = editMode ? "Done" : "Edit";
-  renderDetails();
-};
-
-/* RENDER DETAILS */
-function renderDetails() {
-  vTitle.textContent = active.title;
-  vDesc.textContent = active.desc;
-  eTitle.value = active.title;
-  eDesc.value = active.desc;
-
-  secDesc.classList.toggle("hidden", !editMode && !active.desc);
-  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
-
-  [vTitle, vDesc].forEach(e => e.classList.toggle("hidden", editMode));
-  [eTitle, eDesc, subInput, addSubBtn, deleteBtn]
-    .forEach(e => e.classList.toggle("hidden", !editMode));
-
-  subtasks.innerHTML = "";
-  active.subtasks.forEach(s => {
-    const r = document.createElement("div");
-    r.className = "subtask";
-    r.innerHTML = `<input type="checkbox" ${s.done ? "checked" : ""}><div class="text">${s.title}</div>`;
-    subtasks.append(r);
-  });
-
-  timestamps.textContent =
-    `Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 
-/* RENDER LIST (unchanged) */
+/* RENDER */
 function render() {
   tasksDiv.innerHTML = "";
   tasks.forEach(task => {
@@ -354,6 +291,27 @@ function render() {
 
     const row = document.createElement("div");
     row.className = "task-row";
+
+    let startX = 0, dx = 0;
+
+    row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+    row.addEventListener("touchmove", e => {
+      dx = e.touches[0].clientX - startX;
+      if (dx < 0) {
+        row.style.transform = `translateX(${dx}px)`;
+        row.style.opacity = Math.max(0.4, 1 + dx / 120);
+      }
+    });
+    row.addEventListener("touchend", () => {
+      if (dx < -80) {
+        row.style.transform = "translateX(-120px)";
+        row.style.opacity = "0.4";
+      } else {
+        row.style.transform = "";
+        row.style.opacity = "";
+      }
+      dx = 0;
+    });
 
     const left = document.createElement("div");
     left.className = "task-left";
@@ -387,36 +345,77 @@ function render() {
     row.append(left, mid, right);
     card.append(bg, row);
     tasksDiv.append(card);
-
-    attachSwipe(row);
   });
 }
 
+/* DETAILS */
 function openDetails(id) {
   active = tasks.find(t => t.id === id);
   editMode = false;
-  editBtn.textContent = "Edit";
   renderDetails();
   details.classList.remove("hidden");
 }
 
-/* SWIPE */
-function attachSwipe(row) {
-  let startX = 0, dx = 0;
-  row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-  row.addEventListener("touchmove", e => {
-    dx = e.touches[0].clientX - startX;
-    if (dx < 0) {
-      row.style.transform = `translateX(${dx}px)`;
-      row.style.opacity = Math.max(0.4, 1 + dx / 120);
-    }
-  });
-  row.addEventListener("touchend", () => {
-    row.style.transform = "";
-    row.style.opacity = "";
-    dx = 0;
-  });
+function closeDetails() {
+  save(); render();
+  details.classList.add("hidden");
 }
+
+function toggleEdit() {
+  if (editMode) {
+    active.title = eTitle.value.trim();
+    active.desc = eDesc.value.trim();
+    active.edited = Date.now();
+    save();
+  }
+  editMode = !editMode;
+  editBtn.textContent = editMode ? "Done" : "Edit";
+  renderDetails();
+}
+
+function deleteTask() {
+  tasks = tasks.filter(t => t.id !== active.id);
+  save(); closeDetails();
+}
+
+function renderDetails() {
+  vTitle.textContent = active.title;
+  vDesc.textContent = active.desc;
+  eTitle.value = active.title;
+  eDesc.value = active.desc;
+
+  secDesc.classList.toggle("hidden", !editMode && !active.desc);
+  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
+
+  [vTitle, vDesc].forEach(e => e.classList.toggle("hidden", editMode));
+  [eTitle, eDesc, subInput, addSubBtn, deleteBtn]
+    .forEach(e => e.classList.toggle("hidden", !editMode));
+
+  subtasks.innerHTML = "";
+  active.subtasks.forEach(s => {
+    const r = document.createElement("div");
+    r.className = "subtask";
+    r.innerHTML = `<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
+    subtasks.append(r);
+  });
+
+  timestamps.textContent =
+    `Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
+}
+
+/* 🔧 FIXED: description is persisted before adding subtasks */
+function addSubtasks() {
+  active.desc = eDesc.value.trim();
+  active.edited = Date.now();
+
+  subInput.value.split("\n").filter(Boolean)
+    .forEach(t => active.subtasks.push({ title: t, done: false }));
+
+  subInput.value = "";
+  save();
+  renderDetails();
+}
+
 function swipeBtn(icon, color, fn) {
   const b = document.createElement("div");
   b.className = "swipe-btn";
