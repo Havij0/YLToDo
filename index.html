@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport"
-  content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.6.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Todo App – v0.6.3</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -12,7 +11,6 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   background: #f2f2f7;
-  color: #111;
 }
 .hidden { display: none; }
 
@@ -59,9 +57,9 @@ header .version { font-size: 12px; color: #888; }
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
-.task-left { width: 36px; flex-shrink: 0; }
+.task-left { width: 36px; }
 .task-middle { flex: 1; min-width: 0; }
-.task-right { width: 20px; flex-shrink: 0; }
+.task-right { width: 20px; }
 
 .task-title {
   font-size: 16px;
@@ -89,7 +87,6 @@ header .version { font-size: 12px; color: #888; }
   background: #f2f2f7;
   z-index: 1;
 }
-
 .swipe-btn {
   width: 44px;
   height: 44px;
@@ -161,7 +158,7 @@ input, textarea, select {
 }
 textarea { resize: none; }
 
-/* SUBTASKS */
+/* SUBTASK */
 .subtask {
   display: flex;
   align-items: center;
@@ -193,7 +190,7 @@ textarea { resize: none; }
 
 <header>
   <div class="title">Today</div>
-  <div class="version">DEV v0.6.2</div>
+  <div class="version">DEV v0.6.3</div>
 </header>
 
 <div id="content">
@@ -218,7 +215,7 @@ textarea { resize: none; }
   </header>
   <div class="spacer"></div>
 
-  <div class="section" id="secTitle">
+  <div class="section">
     <h3>Title</h3>
     <div id="vTitle" class="read"></div>
     <input id="eTitle" class="hidden">
@@ -242,14 +239,15 @@ textarea { resize: none; }
 </div>
 
 <script>
-let tasks = JSON.parse(localStorage.getItem("tasks_v062") || "[]");
+let tasks = JSON.parse(localStorage.getItem("tasks_v063") || "[]");
 let active = null;
 let editMode = false;
 
 function save() {
-  localStorage.setItem("tasks_v062", JSON.stringify(tasks));
+  localStorage.setItem("tasks_v063", JSON.stringify(tasks));
 }
 
+/* ADD */
 function addTask() {
   const t = newTitle.value.trim();
   if (!t) return;
@@ -268,13 +266,23 @@ function addTask() {
   save(); render();
 }
 
+/* RENDER LIST */
 function render() {
-  const list = document.getElementById("tasks");
-  list.innerHTML = "";
-
+  tasksDiv.innerHTML = "";
   tasks.forEach(task => {
     const card = document.createElement("div");
     card.className = "task" + (task.done ? " done" : "");
+
+    const bg = document.createElement("div");
+    bg.className = "swipe-bg";
+    bg.append(
+      swipeBtn("✏️", "#007aff", () => openDetails(task.id)),
+      swipeBtn("📅", "#ff9500", () => alert("Reschedule later")),
+      swipeBtn("🗑", "#ff3b30", () => {
+        tasks = tasks.filter(t => t.id !== task.id);
+        save(); render();
+      })
+    );
 
     const row = document.createElement("div");
     row.className = "task-row";
@@ -309,13 +317,14 @@ function render() {
     right.append(dot);
 
     row.append(left, mid, right);
-    card.append(row);
-    list.append(card);
+    card.append(bg, row);
+    tasksDiv.append(card);
 
     attachSwipe(row);
   });
 }
 
+/* SWIPE */
 function attachSwipe(row) {
   let startX = 0, dx = 0;
 
@@ -334,6 +343,16 @@ function attachSwipe(row) {
   });
 }
 
+function swipeBtn(icon, color, fn) {
+  const b = document.createElement("div");
+  b.className = "swipe-btn";
+  b.textContent = icon;
+  b.style.background = color;
+  b.onclick = e => { e.stopPropagation(); fn(); };
+  return b;
+}
+
+/* DETAILS */
 function openDetails(id) {
   active = tasks.find(t => t.id === id);
   editMode = false;
@@ -347,14 +366,15 @@ function closeDetails() {
 }
 
 function toggleEdit() {
+  if (editMode) {
+    active.title = eTitle.value.trim();
+    active.desc = eDesc.value.trim();
+    active.edited = Date.now();
+    save();
+  }
   editMode = !editMode;
   editBtn.textContent = editMode ? "Done" : "Edit";
-  if (!editMode) {
-    active.title = eTitle.value;
-    active.desc = eDesc.value;
-    active.edited = Date.now();
-  }
-  save(); renderDetails();
+  renderDetails();
 }
 
 function deleteTask() {
