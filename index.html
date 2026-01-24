@@ -4,66 +4,219 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Todo App – v0.8</title>
+
 <style>
 * { box-sizing: border-box; }
-body { margin:0; font-family:-apple-system, BlinkMacSystemFont,"SF Pro Text",sans-serif; background:#f2f2f7;}
-.hidden { display:none; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkSystemFont, "SF Pro Text", sans-serif;
+  background: #f2f2f7;
+  overflow-x: hidden;
+}
+.hidden { display: none; }
 
 /* HEADER */
-header { position:fixed; top:0; left:0; right:0; height:56px; background:#fff; border-bottom:1px solid #ddd; display:flex; align-items:center; justify-content:space-between; padding:0 16px; z-index:20; }
-header .title { font-size:20px; font-weight:700; }
-header .version { font-size:12px; color:#888; }
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 20;
+}
+header .title { font-size: 20px; font-weight: 700; }
+header .version { font-size: 12px; color: #888; }
 
 /* CONTENT */
-#content { padding-top:72px; padding-bottom:120px; }
+#content {
+  padding-top: 72px;
+  padding-bottom: 120px;
+}
 
 /* TASK */
-.task { background:#fff; margin:10px 12px; border-radius:16px; overflow:hidden; position:relative; }
-.task.done { opacity:0.45; }
-.task-row { display:flex; align-items:center; min-height:52px; padding:0 14px; background:#fff; position:relative; z-index:2; transition:transform 0.25s ease, opacity 0.25s ease; touch-action: pan-y; }
-.task-left { width:36px; }
-.task-middle { flex:1; min-width:0; }
-.task-right { width:20px; }
-.task-title { font-size:16px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
-.dot { width:10px; height:10px; border-radius:50%; }
+.task {
+  background: #fff;
+  margin: 10px 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.task.done { opacity: 0.45; }
+
+.task-row {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 14px;
+  background: #fff;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  touch-action: pan-y;
+}
+
+.task-left { width: 36px; }
+.task-middle { flex: 1; min-width: 0; }
+.task-right { width: 20px; }
+
+.task-title {
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
 
 /* SWIPE */
-.swipe-bg { position:absolute; inset:0; display:flex; justify-content:flex-end; align-items:center; padding-right:10px; background:#f2f2f7; z-index:1; }
-.swipe-btn { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; margin-left:8px; color:#fff; font-size:18px; }
+.swipe-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: 10px;
+  background: #f2f2f7;
+  z-index: 1;
+}
+.swipe-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  color: #fff;
+  font-size: 18px;
+  z-index: 10;
+}
 
 /* ADD BAR */
-#addBar { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #ddd; padding:10px 12px; display:flex; gap:8px; z-index:20; }
-#addBar input, #addBar select { flex:1; font-size:16px; padding:12px; border-radius:14px; border:1px solid #ccc; }
-#addBar button { padding:0 18px; font-size:22px; border-radius:14px; border:none; background:#000; color:#fff; cursor:pointer; }
-
-/* ADVANCED ADD TASK MODAL */
-#addModal { position:fixed; inset:0; background:rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; z-index:100; }
-#addForm { background:#fff; border-radius:16px; padding:20px; width:90%; max-width:400px; display:flex; flex-direction:column; gap:12px; }
-#addForm textarea { resize:none; }
+#addBar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 20;
+}
+#addBar input, #addBar select {
+  flex: 1;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid #ccc;
+}
+#addBar button {
+  padding: 0 18px;
+  font-size: 22px;
+  border-radius: 14px;
+  border: none;
+  background: #000;
+  color: #fff;
+}
 
 /* DETAILS */
-#details { position:fixed; inset:0; background:#f2f2f7; z-index:50; overflow-y:auto; transition: transform 0.25s ease; }
-#details .spacer { height:72px; }
-.section { background:#fff; margin:12px; padding:16px; border-radius:16px; }
-.section h3 { margin:0 0 8px; font-size:13px; color:#666; }
-.read { font-size:16px; }
-input, textarea, select { width:100%; font-size:16px; padding:12px; border-radius:12px; border:1px solid #ccc; }
-textarea { resize:none; }
-.subtask { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-.subtask input { width:20px; height:20px; }
-.subtask .text { flex:1; }
-#deleteBtn { margin:16px 12px; padding:14px; font-size:16px; border-radius:16px; background:#ff3b30; color:#fff; border:none; cursor:pointer; }
-.timestamps { margin:0 12px 24px; font-size:12px; color:#888; }
+#details {
+  position: fixed;
+  inset: 0;
+  background: #f2f2f7;
+  z-index: 50;
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+#details .spacer { height: 72px; }
+
+.section {
+  background: #fff;
+  margin: 12px;
+  padding: 16px;
+  border-radius: 16px;
+}
+.section h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #666;
+}
+.read { font-size: 16px; }
+
+input, textarea, select {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+}
+textarea { resize: none; }
+
+/* SUBTASK */
+.subtask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.subtask input { width: 20px; height: 20px; }
+.subtask .text { flex: 1; }
+
+#deleteBtn {
+  margin: 16px 12px;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 16px;
+  background: #ff3b30;
+  color: #fff;
+  border: none;
+}
+
+.timestamps {
+  margin: 0 12px 24px;
+  font-size: 12px;
+  color: #888;
+}
+
+/* ADVANCED ADD TASK */
+#advAddTask {
+  position: fixed;
+  left: 0; right: 0; bottom: -400px;
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.15);
+  transition: bottom 0.3s ease;
+  z-index: 30;
+  padding: 16px;
+}
+#advAddTask input, #advAddTask textarea, #advAddTask select {
+  margin-bottom: 10px;
+}
+#advAddTask button { margin-top: 10px; }
 </style>
 </head>
 
 <body>
+
 <header>
   <div class="title">Today</div>
   <div class="version">v0.8</div>
 </header>
 
-<div id="content"><div id="tasks"></div></div>
+<div id="content">
+  <div id="tasks"></div>
+</div>
 
 <div id="addBar">
   <input id="newTitle" placeholder="New task…" />
@@ -72,26 +225,24 @@ textarea { resize:none; }
     <option value="2">Important</option>
     <option value="1">Must</option>
   </select>
-  <button id="advancedAddBtn">+</button>
+  <button onclick="addTask()">+</button>
+  <button onclick="openAdvancedAdd()">⋀</button>
 </div>
 
-<!-- ADVANCED ADD MODAL -->
-<div id="addModal" class="hidden">
-  <div id="addForm">
-    <h3>Add Task</h3>
-    <input id="addTitle" placeholder="Title*" />
-    <textarea id="addDesc" rows="3" placeholder="Description"></textarea>
-    <textarea id="addSub" rows="3" placeholder="Subtasks, one per line"></textarea>
-    <select id="addPriority">
-      <option value="3">Normal</option>
-      <option value="2">Important</option>
-      <option value="1">Must</option>
-    </select>
-    <div style="display:flex; gap:8px;">
-      <button onclick="confirmAddTask()">Save</button>
-      <button onclick="closeAddModal()">Cancel</button>
-    </div>
-  </div>
+<!-- ADVANCED ADD TASK -->
+<div id="advAddTask">
+  <h3>New Task</h3>
+  <input id="advTitle" placeholder="Title" />
+  <textarea id="advDesc" rows="3" placeholder="Description"></textarea>
+  <textarea id="advSubtasks" rows="3" placeholder="Subtasks (one per line)"></textarea>
+  <select id="advPriority">
+    <option value="3">Normal</option>
+    <option value="2">Important</option>
+    <option value="1">Must</option>
+  </select>
+  <input id="advDate" type="date" />
+  <button onclick="addAdvancedTask()">Add Task</button>
+  <button onclick="closeAdvancedAdd()">Cancel</button>
 </div>
 
 <!-- DETAILS -->
@@ -101,142 +252,216 @@ textarea { resize:none; }
     <button id="editBtn" onclick="toggleEdit()">Edit</button>
   </header>
   <div class="spacer"></div>
+
   <div class="section">
     <h3>Title</h3>
     <div id="vTitle" class="read"></div>
     <input id="eTitle" class="hidden">
   </div>
+
   <div class="section hidden" id="secDesc">
     <h3>Description</h3>
     <div id="vDesc" class="read"></div>
     <textarea id="eDesc" class="hidden" rows="4"></textarea>
   </div>
+
   <div class="section hidden" id="secSubs">
     <h3>Subtasks</h3>
     <div id="subtasks"></div>
     <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
     <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
   </div>
+
   <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
   <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
+/* 🔒 LOCKED v0.7 FEATURES + ADVANCED ADD TASK + SWIPE BACK */
 const tasksDiv = document.getElementById("tasks");
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 
-const addModal = document.getElementById("addModal");
-const addTitle = document.getElementById("addTitle");
-const addDesc = document.getElementById("addDesc");
-const addSub = document.getElementById("addSub");
-const addPriority = document.getElementById("addPriority");
-
 let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
+
 const SWIPE_WIDTH = 160;
 
-/* --- ADD TASK --- */
-document.getElementById("advancedAddBtn").onclick = () => {
-  addTitle.value = newTitle.value.trim();
-  addDesc.value = "";
-  addSub.value = "";
-  addPriority.value = newPriority.value;
-  addModal.classList.remove("hidden");
-};
-function closeAddModal() { addModal.classList.add("hidden"); }
-function confirmAddTask() {
-  const t = addTitle.value.trim(); if(!t) return alert("Title required");
-  const now = Date.now();
-  tasks.push({
-    id: now,
-    title: t,
-    desc: addDesc.value.trim(),
-    priority: +addPriority.value,
-    done: false,
-    subtasks: addSub.value.split("\n").filter(Boolean).map(s=>({title:s,done:false})),
-    created: now,
-    edited: now
-  });
-  newTitle.value = ""; save(); render(); closeAddModal();
+function save() {
+  localStorage.setItem("tasks_v064", JSON.stringify(tasks));
 }
 
-/* --- RENDER --- */
+/* ADD TASK (quick) */
+function addTask() {
+  const t = newTitle.value.trim();
+  if (!t) return;
+  const now = Date.now();
+  tasks.push({ id: now, title: t, desc: "", priority: +newPriority.value, done: false, subtasks: [], created: now, edited: now });
+  newTitle.value = "";
+  save(); render();
+}
+
+/* ADVANCED ADD TASK */
+const adv = document.getElementById("advAddTask");
+function openAdvancedAdd() { adv.style.bottom = "0"; }
+function closeAdvancedAdd() { adv.style.bottom = "-400px"; }
+
+function addAdvancedTask() {
+  const title = document.getElementById("advTitle").value.trim();
+  if (!title) return alert("Title required");
+  const desc = document.getElementById("advDesc").value.trim();
+  const sublines = document.getElementById("advSubtasks").value.split("\n").filter(Boolean);
+  const prio = +document.getElementById("advPriority").value;
+  const date = document.getElementById("advDate").value;
+
+  const now = Date.now();
+  tasks.push({ id: now, title, desc, priority: prio, done: false, subtasks: sublines.map(t=>({title:t,done:false})), created: now, edited: now, date });
+  document.getElementById("advTitle").value = "";
+  document.getElementById("advDesc").value = "";
+  document.getElementById("advSubtasks").value = "";
+  document.getElementById("advDate").value = "";
+  save(); render(); closeAdvancedAdd();
+}
+
+/* RENDER TASKS */
 function render() {
   tasksDiv.innerHTML = "";
-  tasks.forEach(task=>{
-    const card=document.createElement("div"); card.className="task"+(task.done?" done":"");
-    const bg=document.createElement("div"); bg.className="swipe-bg";
+  tasks.forEach(task => {
+    const card = document.createElement("div");
+    card.className = "task" + (task.done ? " done" : "");
+
+    const bg = document.createElement("div");
+    bg.className = "swipe-bg";
     bg.append(
-      swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
-      swipeBtn("📅","#ff9500",()=>alert("Reschedule later")),
-      swipeBtn("🗑","#ff3b30",()=>{
-        tasks=tasks.filter(t=>t.id!==task.id); save(); render();
-      })
+      swipeBtn("✏️", "#007aff", () => openDetails(task.id)),
+      swipeBtn("📅", "#ff9500", () => alert("Reschedule later")),
+      swipeBtn("🗑", "#ff3b30", () => { tasks = tasks.filter(t => t.id!==task.id); save(); render(); })
     );
-    const row=document.createElement("div"); row.className="task-row";
+
+    const row = document.createElement("div");
+    row.className = "task-row";
+
     let startX=0, dx=0, locked=false;
-    row.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
-    row.addEventListener("touchmove", e=>{
+
+    row.addEventListener("touchstart", e=> startX=e.touches[0].clientX);
+    row.addEventListener("touchmove", e=> {
       dx=e.touches[0].clientX-startX;
-      if(dx<0){ row.style.transform=`translateX(${dx}px)`; row.style.opacity=Math.max(0.4,1+dx/120);}
+      if(dx<0){ row.style.transform=`translateX(${dx}px)`; row.style.opacity=Math.max(0.4,1+dx/120); }
     });
-    row.addEventListener("touchend", ()=>{
+    row.addEventListener("touchend", ()=> {
       if(dx<-80){ row.style.transform=`translateX(-${SWIPE_WIDTH}px)`; row.style.opacity="0.4"; locked=true; row.style.pointerEvents="none"; bg.style.pointerEvents="auto"; }
       else { row.style.transform="translateX(0)"; row.style.opacity="1"; locked=false; row.style.pointerEvents="auto"; bg.style.pointerEvents="none"; }
       dx=0;
     });
 
-    const left=document.createElement("div"); left.className="task-left";
+    const left = document.createElement("div");
+    left.className="task-left";
     const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=task.done;
-    cb.onchange=e=>{ task.done=cb.checked; save(); render(); e.stopPropagation(); }
+    cb.onchange=e=>{task.done=cb.checked; save(); render(); e.stopPropagation();}
     left.append(cb);
+
     const mid=document.createElement("div"); mid.className="task-middle";
-    const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title;
-    title.onclick=()=>openDetails(task.id);
-    mid.append(title);
+    const titleDiv=document.createElement("div"); titleDiv.className="task-title"; titleDiv.textContent=task.title;
+    titleDiv.onclick=()=>openDetails(task.id);
+    mid.append(titleDiv);
+
     const right=document.createElement("div"); right.className="task-right";
     const dot=document.createElement("div"); dot.className="dot";
     dot.style.background = task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#34c759";
     right.append(dot);
-    row.append(left,mid,right); card.append(bg,row); tasksDiv.append(card);
+
+    row.append(left,mid,right);
+    card.append(bg,row);
+    tasksDiv.append(card);
   });
 }
 
-/* --- DETAILS --- */
-function openDetails(id){ active=tasks.find(t=>t.id===id); editMode=false; renderDetails(); details.classList.remove("hidden"); }
+/* DETAILS + SWIPE RIGHT TO CLOSE */
+const details=document.getElementById("details");
+function openDetails(id){
+  active=tasks.find(t=>t.id===id);
+  editMode=false;
+  renderDetails();
+  details.classList.remove("hidden");
+}
 function closeDetails(){ save(); render(); details.classList.add("hidden"); }
-function toggleEdit(){ if(editMode){ active.title=eTitle.value.trim(); active.desc=eDesc.value.trim(); active.edited=Date.now(); save(); } editMode=!editMode; editBtn.textContent=editMode?"Done":"Edit"; renderDetails(); }
-function deleteTask(){ tasks=tasks.filter(t=>t.id!==active.id); save(); closeDetails(); }
+
+let detailStartX=0, detailDx=0;
+details.addEventListener("touchstart", e=> detailStartX=e.touches[0].clientX );
+details.addEventListener("touchmove", e=>{
+  detailDx=e.touches[0].clientX - detailStartX;
+});
+details.addEventListener("touchend", ()=>{
+  if(detailDx>80) closeDetails();
+  detailDx=0;
+});
+
+/* EDIT / SUBTASKS */
+const vTitle=document.getElementById("vTitle");
+const vDesc=document.getElementById("vDesc");
+const eTitle=document.getElementById("eTitle");
+const eDesc=document.getElementById("eDesc");
+const subInput=document.getElementById("subInput");
+const addSubBtn=document.getElementById("addSubBtn");
+const subtasks=document.getElementById("subtasks");
+const secDesc=document.getElementById("secDesc");
+const secSubs=document.getElementById("secSubs");
+const editBtn=document.getElementById("editBtn");
+const deleteBtn=document.getElementById("deleteBtn");
+const timestamps=document.getElementById("timestamps");
+
+function toggleEdit(){
+  if(editMode){
+    active.title=eTitle.value.trim();
+    active.desc=eDesc.value.trim();
+    active.edited=Date.now();
+    save();
+  }
+  editMode=!editMode;
+  editBtn.textContent=editMode?"Done":"Edit";
+  renderDetails();
+}
+
 function renderDetails(){
-  vTitle.textContent=active.title; vDesc.textContent=active.desc;
-  eTitle.value=active.title; eDesc.value=active.desc;
-  secDesc.classList.toggle("hidden",!editMode&&!active.desc);
-  secSubs.classList.toggle("hidden",!editMode&&active.subtasks.length===0);
+  vTitle.textContent=active.title;
+  vDesc.textContent=active.desc;
+  eTitle.value=active.title;
+  eDesc.value=active.desc;
+
+  secDesc.classList.toggle("hidden",!editMode && !active.desc);
+  secSubs.classList.toggle("hidden",!editMode && active.subtasks.length===0);
+
   [vTitle,vDesc].forEach(e=>e.classList.toggle("hidden",editMode));
   [eTitle,eDesc,subInput,addSubBtn,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
+
   subtasks.innerHTML="";
   active.subtasks.forEach(s=>{
-    const r=document.createElement("div"); r.className="subtask";
+    const r=document.createElement("div");
+    r.className="subtask";
     r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
     subtasks.append(r);
   });
+
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
-function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
 
-function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
+function addSubtasks(){
+  active.desc=eDesc.value.trim();
+  active.edited=Date.now();
+  subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false}));
+  subInput.value="";
+  save(); renderDetails();
+}
 
-/* --- SWIPE TO CLOSE DETAILS --- */
-let dStartX=0, dDx=0;
-details.addEventListener("touchstart",e=>dStartX=e.touches[0].clientX);
-details.addEventListener("touchmove",e=>{ dDx=e.touches[0].clientX-dStartX; if(dDx>0){ details.style.transform=`translateX(${dDx}px)`; } });
-details.addEventListener("touchend",()=>{
-  if(dDx>80){ closeDetails(); details.style.transform=""; }
-  else{ details.style.transform=""; }
-  dDx=0;
-});
+function deleteTask(){ tasks=tasks.filter(t=>t.id!==active.id); save(); closeDetails(); }
+
+function swipeBtn(icon,color,fn){
+  const b=document.createElement("div");
+  b.className="swipe-btn"; b.textContent=icon; b.style.background=color;
+  b.onclick=e=>{ e.stopPropagation(); fn(); };
+  return b;
+}
 
 render();
 </script>
