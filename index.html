@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.7 LOCKED</title>
+<title>Todo App – v0.7</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -54,9 +54,8 @@ header .version { font-size: 12px; color: #888; }
   background: #fff;
   position: relative;
   z-index: 2;
-  /* smooth swipe animation */
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
-  touch-action: pan-y;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  touch-action: pan-y; /* allow vertical scroll without interfering with swipe */
 }
 
 .task-left { width: 36px; }
@@ -88,7 +87,6 @@ header .version { font-size: 12px; color: #888; }
   padding-right: 10px;
   background: #f2f2f7;
   z-index: 1;
-  transition: opacity 0.25s ease;
 }
 .swipe-btn {
   width: 44px;
@@ -245,12 +243,11 @@ textarea { resize: none; }
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 const tasksDiv = document.getElementById("tasks");
+const SWIPE_WIDTH = 160; // total width of swipe buttons
 
 let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
-
-const SWIPE_WIDTH = 160; // width of swipe area
 
 function save() {
   localStorage.setItem("tasks_v064", JSON.stringify(tasks));
@@ -302,23 +299,29 @@ function render() {
     row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
     row.addEventListener("touchmove", e => {
       dx = e.touches[0].clientX - startX;
-      if (dx < 0) {
-        row.style.transform = `translateX(${dx}px)`;
+      if (dx < 0 || (dx > 0 && locked)) {
+        row.style.transform = `translateX(${locked ? -SWIPE_WIDTH + dx : dx}px)`;
         row.style.opacity = Math.max(0.4, 1 + dx / 120);
       }
     });
+
     row.addEventListener("touchend", () => {
-      if (dx < -80) {
+      if (dx < -80) { // swipe left to open
         row.style.transform = `translateX(-${SWIPE_WIDTH}px)`;
         row.style.opacity = "0.4";
         locked = true;
         row.style.pointerEvents = "none";
         bg.style.pointerEvents = "auto";
-      } else {
+      } else if (dx > 80 && locked) { // swipe right to close
         row.style.transform = "translateX(0)";
         row.style.opacity = "1";
         locked = false;
         row.style.pointerEvents = "auto";
+        bg.style.pointerEvents = "auto";
+      } else { // small swipe, snap to current state
+        row.style.transform = locked ? `translateX(-${SWIPE_WIDTH}px)` : "translateX(0)";
+        row.style.opacity = locked ? "0.4" : "1";
+        row.style.pointerEvents = locked ? "none" : "auto";
         bg.style.pointerEvents = "auto";
       }
       dx = 0;
