@@ -294,6 +294,118 @@ function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now()
 function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
 
 render();
+
+/* ===============================
+   PATCH v0.8.6.2 – AddBar Pull-Up
+   =============================== */
+
+/* VERSION BUMP (visual only) */
+document.querySelector(".version").textContent = "v0.8.6.2";
+
+/* ELEMENTS */
+const addBar = document.getElementById("addBar");
+const advSheet = document.getElementById("advAddTask");
+
+/* --- ADD BAR : PULL UP TO OPEN ADVANCED --- */
+let addStartY = 0;
+let addDragging = false;
+
+addBar.addEventListener("touchstart", e => {
+  addStartY = e.touches[0].clientY;
+  addDragging = true;
+});
+
+addBar.addEventListener("touchmove", e => {
+  if (!addDragging) return;
+  const dy = addStartY - e.touches[0].clientY;
+
+  // pull up threshold
+  if (dy > 60) {
+    openAdvancedAdd();
+    addDragging = false;
+  }
+});
+
+addBar.addEventListener("touchend", () => {
+  addDragging = false;
+});
+
+/* --- ADVANCED SHEET : PULL DOWN TO CLOSE --- */
+let advStartY = 0;
+let advDragging = false;
+
+advSheet.addEventListener("touchstart", e => {
+  advStartY = e.touches[0].clientY;
+  advDragging = true;
+  advSheet.style.transition = "none";
+});
+
+advSheet.addEventListener("touchmove", e => {
+  if (!advDragging) return;
+  const dy = e.touches[0].clientY - advStartY;
+
+  if (dy > 0) {
+    advSheet.style.transform = `translateY(${dy}px)`;
+  }
+});
+
+advSheet.addEventListener("touchend", e => {
+  advDragging = false;
+  advSheet.style.transition = "transform 0.3s ease";
+
+  const dy = e.changedTouches[0].clientY - advStartY;
+
+  if (dy > 120) {
+    closeAdvancedAdd();
+  } else {
+    advSheet.style.transform = "translateY(0)";
+  }
+});
+/* ===============================
+   PATCH v0.8.7 – Swipe Back on Details
+   =============================== */
+
+/* VERSION BUMP */
+document.querySelector(".version").textContent = "v0.8.7";
+
+/* DETAILS SWIPE BACK */
+const detailsView = document.getElementById("details");
+
+let detailsStartX = 0;
+let detailsStartY = 0;
+let detailsTracking = false;
+
+detailsView.addEventListener("touchstart", e => {
+  if (e.touches.length !== 1) return;
+  detailsStartX = e.touches[0].clientX;
+  detailsStartY = e.touches[0].clientY;
+  detailsTracking = true;
+});
+
+detailsView.addEventListener("touchmove", e => {
+  if (!detailsTracking) return;
+
+  const dx = e.touches[0].clientX - detailsStartX;
+  const dy = e.touches[0].clientY - detailsStartY;
+
+  // Horizontal swipe only (ignore vertical scroll)
+  if (Math.abs(dx) > Math.abs(dy) && dx > 0) {
+    e.preventDefault(); // stop scroll
+  }
+});
+
+detailsView.addEventListener("touchend", e => {
+  if (!detailsTracking) return;
+  detailsTracking = false;
+
+  const dx = e.changedTouches[0].clientX - detailsStartX;
+
+  // Swipe right threshold
+  if (dx > 80) {
+    closeDetails();
+  }
+});
+
 </script>
 </body>
 </html>
