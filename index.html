@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.8.5</title>
+<title>Todo App – v0.8.6</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -68,11 +68,7 @@ header .version { font-size: 12px; color: #888; }
   cursor: pointer;
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
 
 /* SWIPE */
 .swipe-bg {
@@ -86,12 +82,9 @@ header .version { font-size: 12px; color: #888; }
   z-index: 1;
 }
 .swipe-btn {
-  width: 44px;
-  height: 44px;
+  width: 44px; height: 44px;
   border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   margin-left: 8px;
   color: #fff;
   font-size: 18px;
@@ -115,37 +108,7 @@ header .version { font-size: 12px; color: #888; }
   border-radius: 14px;
   border: 1px solid #ccc;
 }
-#addBar button {
-  padding: 0 18px;
-  font-size: 22px;
-  border-radius: 14px;
-  border: none;
-  background: #000;
-  color: #fff;
-}
-
-/* ADVANCED ADD TASK PULL-UP */
-#advAddTask {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  max-height: 90%;
-  overflow-y: auto;
-  background: #fff;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  box-shadow: 0 -3px 10px rgba(0,0,0,0.15);
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-  z-index: 30;
-  padding: 16px;
-}
-#advAddTask .handle {
-  width: 40px;
-  height: 4px;
-  background: #ccc;
-  border-radius: 2px;
-  margin: 0 auto 12px;
-}
+#addBar button { padding: 0 18px; font-size: 22px; border-radius: 14px; border: none; background: #000; color: #fff; }
 
 /* DETAILS */
 #details {
@@ -163,59 +126,45 @@ header .version { font-size: 12px; color: #888; }
   padding: 16px;
   border-radius: 16px;
 }
-.section h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
-  color: #666;
-}
+.section h3 { margin: 0 0 8px; font-size: 13px; color: #666; }
 .read { font-size: 16px; }
 
-input, textarea, select {
-  width: 100%;
-  font-size: 16px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-}
+input, textarea, select { width: 100%; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid #ccc; }
 textarea { resize: none; }
 
 /* SUBTASK */
-.subtask {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
+.subtask { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .subtask input { width: 20px; height: 20px; }
 .subtask .text { flex: 1; }
 
-#deleteBtn {
-  margin: 16px 12px;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 16px;
-  background: #ff3b30;
-  color: #fff;
-  border: none;
-}
+#deleteBtn { margin: 16px 12px; padding: 14px; font-size: 16px; border-radius: 16px; background: #ff3b30; color: #fff; border: none; }
 
-.timestamps {
-  margin: 0 12px 24px;
-  font-size: 12px;
-  color: #888;
+.timestamps { margin: 0 12px 24px; font-size: 12px; color: #888; }
+
+/* ADVANCED ADD TASK PULL-UP */
+#advAddTask {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  max-height: 90%; overflow-y: auto;
+  background: #fff;
+  border-top-left-radius: 20px; border-top-right-radius: 20px;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.15);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 30;
+  padding: 16px;
 }
+#advAddTask .handle { width: 40px; height: 4px; background: #ccc; border-radius: 2px; margin: 0 auto 12px; }
 </style>
 </head>
+
 <body>
 
 <header>
   <div class="title">Today</div>
-  <div class="version">v0.8.5</div>
+  <div class="version">v0.8.6</div>
 </header>
 
-<div id="content">
-  <div id="tasks"></div>
-</div>
+<div id="content"><div id="tasks"></div></div>
 
 <div id="addBar">
   <input id="newTitle" placeholder="New task…" />
@@ -247,6 +196,10 @@ textarea { resize: none; }
   </div>
   <div class="section">
     <textarea id="advSubtasks" placeholder="Subtasks, one per line" rows="4"></textarea>
+  </div>
+  <div class="section">
+    <label>Schedule Date</label>
+    <input type="date" id="advDate" />
   </div>
   <button onclick="addAdvancedTask()">Add Task</button>
   <button onclick="closeAdvancedAdd()">Cancel</button>
@@ -289,49 +242,72 @@ const advTitle = document.getElementById("advTitle");
 const advDesc = document.getElementById("advDesc");
 const advPriority = document.getElementById("advPriority");
 const advSubtasks = document.getElementById("advSubtasks");
+const advDate = document.getElementById("advDate");
 
 let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
+const SWIPE_WIDTH = 160;
 
-const SWIPE_WIDTH = 160; // action buttons width
+// set default date to today
+const todayStr = new Date().toISOString().split("T")[0];
+advDate.value = todayStr;
 
-function save() {
-  localStorage.setItem("tasks_v064", JSON.stringify(tasks));
-}
+function save() { localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
 
-/* QUICK ADD */
+/* QUICK ADD TASK */
 function addTask() {
   const t = newTitle.value.trim();
   if (!t) return;
   const now = Date.now();
   tasks.push({
-    id: now, title: t, desc: "", priority: +newPriority.value, done: false,
-    subtasks: [], created: now, edited: now
+    id: now,
+    title: t,
+    desc: "",
+    priority: +newPriority.value,
+    done: false,
+    subtasks: [],
+    date: todayStr,
+    created: now,
+    edited: now
   });
   newTitle.value = "";
-  save(); render();
+  save();
+  render();
 }
 
-/* ADVANCED ADD */
+/* ADVANCED ADD TASK */
 function addAdvancedTask() {
   const t = advTitle.value.trim();
   if (!t) return;
   const now = Date.now();
-  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({ title:s, done:false }));
+  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({ title: s, done: false }));
   tasks.push({
-    id: now, title: t, desc: advDesc.value.trim(),
-    priority: +advPriority.value, done: false, subtasks: subs, created: now, edited: now
+    id: now,
+    title: t,
+    desc: advDesc.value.trim(),
+    priority: +advPriority.value,
+    done: false,
+    subtasks: subs,
+    date: advDate.value,
+    created: now,
+    edited: now
   });
-  advTitle.value = ""; advDesc.value = ""; advSubtasks.value = ""; advPriority.value = 3;
-  save(); render(); closeAdvancedAdd();
+  advTitle.value = "";
+  advDesc.value = "";
+  advSubtasks.value = "";
+  advPriority.value = 3;
+  advDate.value = todayStr;
+  save();
+  render();
+  closeAdvancedAdd();
 }
 
-/* ADVANCED PULL-UP DRAG */
+/* ADVANCED PULL-UP DRAG LOGIC */
 let startY=0, currentY=0, dragging=false;
 adv.addEventListener("touchstart", e => { startY=e.touches[0].clientY; dragging=true; adv.style.transition="none"; });
 adv.addEventListener("touchmove", e => { if(!dragging) return; currentY=e.touches[0].clientY-startY; if(currentY>0) adv.style.transform=`translateY(${currentY}px)`; });
-adv.addEventListener("touchend", () => { dragging=false; adv.style.transition="transform 0.3s ease"; if(currentY>100) adv.style.transform="translateY(100%)"; else adv.style.transform="translateY(0)"; currentY=0; });
+adv.addEventListener("touchend", ()=>{ dragging=false; adv.style.transition="transform 0.3s ease"; if(currentY>100) adv.style.transform="translateY(100%)"; else adv.style.transform="translateY(0)"; currentY=0; });
 function openAdvancedAdd(){ adv.style.transform="translateY(0)"; }
 function closeAdvancedAdd(){ adv.style.transform="translateY(100%)"; }
 
@@ -341,29 +317,21 @@ function render() {
   tasks.forEach(task=>{
     const card=document.createElement("div");
     card.className="task"+(task.done?" done":"");
-
     const bg=document.createElement("div");
     bg.className="swipe-bg";
     bg.append(
       swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
       swipeBtn("📅","#ff9500",()=>alert("Reschedule later")),
-      swipeBtn("🗑","#ff3b30",()=>{
-        tasks=tasks.filter(t=>t.id!==task.id);
-        save(); render();
-      })
+      swipeBtn("🗑","#ff3b30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); })
     );
 
     const row=document.createElement("div");
     row.className="task-row";
 
-    let startX=0,dx=0;
+    let startX=0, dx=0;
     row.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
     row.addEventListener("touchmove", e=>{ dx=e.touches[0].clientX-startX; if(dx<0) row.style.transform=`translateX(${dx}px)`; });
-    row.addEventListener("touchend", ()=>{
-      if(dx<-80) row.style.transform=`translateX(-${SWIPE_WIDTH}px)`; 
-      else row.style.transform=`translateX(0)`;
-      dx=0;
-    });
+    row.addEventListener("touchend", ()=>{ if(dx<-80) row.style.transform=`translateX(-${SWIPE_WIDTH}px)`; else row.style.transform="translateX(0)"; dx=0; });
 
     const left=document.createElement("div"); left.className="task-left";
     const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=task.done;
@@ -372,11 +340,13 @@ function render() {
 
     const mid=document.createElement("div"); mid.className="task-middle";
     const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title;
-    title.onclick=()=>openDetails(task.id); mid.append(title);
+    title.onclick=()=>openDetails(task.id);
+    mid.append(title);
 
     const right=document.createElement("div"); right.className="task-right";
     const dot=document.createElement("div"); dot.className="dot";
-    dot.style.background = task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#34c759"; right.append(dot);
+    dot.style.background=task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#34c759";
+    right.append(dot);
 
     row.append(left,mid,right);
     card.append(bg,row);
@@ -392,23 +362,17 @@ function deleteTask(){ tasks=tasks.filter(t=>t.id!==active.id); save(); closeDet
 function renderDetails(){
   vTitle.textContent=active.title; vDesc.textContent=active.desc;
   eTitle.value=active.title; eDesc.value=active.desc;
-  secDesc.classList.toggle("hidden",!editMode&&!active.desc);
-  secSubs.classList.toggle("hidden",!editMode&&active.subtasks.length===0);
-  [vTitle,vDesc].forEach(e=>e.classList.toggle("hidden",editMode));
-  [eTitle,eDesc,subInput,addSubBtn,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
+  secDesc.classList.toggle("hidden", !editMode && !active.desc);
+  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length===0);
+  [vTitle,vDesc].forEach(e=>e.classList.toggle("hidden", editMode));
+  [eTitle,eDesc,subInput,addSubBtn,deleteBtn].forEach(e=>e.classList.toggle("hidden", !editMode));
   subtasks.innerHTML="";
   active.subtasks.forEach(s=>{ const r=document.createElement("div"); r.className="subtask"; r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`; subtasks.append(r); });
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
 
-function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
-
-/* SWIPE-RIGHT TO CLOSE DETAILS */
-let dStartX=0,dDx=0;
-details.addEventListener("touchstart", e=>{ if(e.touches.length!==1) return; dStartX=e.touches[0].clientX; dDx=0; });
-details.addEventListener("touchmove", e=>{ if(e.touches.length!==1) return; dDx=e.touches[0].clientX-dStartX; });
-details.addEventListener("touchend", ()=>{ if(dDx>80) closeDetails(); dDx=0; });
+function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{e.stopPropagation();fn();}; return b; }
 
 render();
 </script>
