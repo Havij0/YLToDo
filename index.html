@@ -304,7 +304,7 @@ function renderTaskCard(task){
   const bg=document.createElement("div"); bg.className="swipe-bg";
   bg.append(
     swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
-    swipeBtn("📅","#ff9500",()=>alert("Reschedule later")),
+swipeBtn("📅","#ff9500",()=>openReschedule(task))
     swipeBtn("🗑","#ff3b30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); })
   );
 
@@ -386,6 +386,68 @@ function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now()
 function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
 
 render();
+let taskToReschedule = null;
+const reschedulePopup = document.getElementById("reschedulePopup");
+const rescheduleDateInput = document.getElementById("rescheduleDate");
+
+function openReschedule(task) {
+  taskToReschedule = task;
+  reschedulePopup.classList.remove("hidden");
+
+  // clear or set default
+  rescheduleDateInput.value = "";
+}
+
+function closeReschedule() {
+  taskToReschedule = null;
+  reschedulePopup.classList.add("hidden");
+}
+
+function rescheduleTask(option) {
+  if (!taskToReschedule) return;
+
+  const today = new Date();
+  let newDate = "";
+
+  if(option === "tomorrow") {
+    today.setDate(today.getDate()+1);
+    newDate = today.toISOString().slice(0,10);
+  } else if(option === "nextWeek") {
+    today.setDate(today.getDate()+7);
+    newDate = today.toISOString().slice(0,10);
+  }
+
+  taskToReschedule.scheduled = newDate;
+  taskToReschedule.edited = Date.now();
+  save(); render();
+  closeReschedule();
+}
+
+function confirmReschedule() {
+  if (!taskToReschedule) return;
+  if(rescheduleDateInput.value){
+    taskToReschedule.scheduled = rescheduleDateInput.value;
+    taskToReschedule.edited = Date.now();
+    save(); render();
+    closeReschedule();
+  }
+}
+
 </script>
+
+<!-- RESCHEDULE POPUP -->
+<div id="reschedulePopup" class="hidden" style="
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 16px; z-index: 40; min-width: 220px;
+">
+  <div style="display:flex; flex-direction: column; gap:8px;">
+    <button onclick="rescheduleTask('tomorrow')">Tomorrow</button>
+    <button onclick="rescheduleTask('nextWeek')">Next Week</button>
+    <input type="date" id="rescheduleDate" />
+    <button onclick="confirmReschedule()">Set</button>
+    <button onclick="closeReschedule()">Cancel</button>
+  </div>
+</div>
 </body>
 </html>
