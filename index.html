@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -318,7 +316,7 @@ function renderTaskCard(task){
   const bg=document.createElement("div"); bg.className="swipe-bg";
   bg.append(
     swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
-    swipeBtn("📅","#ff9500",()=>openSchedulePopup(task.id)),
+swipeBtn("📅","#ff9500",(e)=>openSchedulePopup(task.id, e))
     swipeBtn("🗑","#ff3b30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); })
   );
 
@@ -394,7 +392,84 @@ function openSchedulePopup(id){
 }
 
 render();
+// ===============================
+// SCHEDULE FLOATING MENU
+// ===============================
+let scheduleMenu = null;
+
+function openSchedulePopup(taskId, event) {
+  const task = tasks.find(t => t.id === taskId);
   
+  // Remove old menu
+  if(scheduleMenu) scheduleMenu.remove();
+
+  // Create menu container
+  scheduleMenu = document.createElement("div");
+  scheduleMenu.style.position = "absolute";
+  scheduleMenu.style.background = "#fff";
+  scheduleMenu.style.border = "1px solid #ccc";
+  scheduleMenu.style.borderRadius = "12px";
+  scheduleMenu.style.boxShadow = "0 3px 10px rgba(0,0,0,0.15)";
+  scheduleMenu.style.zIndex = 1000;
+  scheduleMenu.style.display = "flex";
+  scheduleMenu.style.flexDirection = "column";
+  scheduleMenu.style.padding = "8px 0";
+  scheduleMenu.style.minWidth = "140px";
+
+  // Position menu near the task row
+  const rect = event.currentTarget.getBoundingClientRect();
+  scheduleMenu.style.top = `${rect.bottom + window.scrollY + 4}px`;
+  scheduleMenu.style.left = `${rect.left + window.scrollX}px`;
+
+  // Menu options
+  const options = [
+    { text: "Tomorrow", fn: () => { let d = new Date(); d.setDate(d.getDate()+1); task.scheduled = d.toISOString().slice(0,10); closeMenu(); } },
+    { text: "No date", fn: () => { task.scheduled = ""; closeMenu(); } },
+    { text: "Select date", fn: () => {
+        const input = document.createElement("input");
+        input.type = "date";
+        input.value = task.scheduled || "";
+        input.onchange = e => { task.scheduled = e.target.value; closeMenu(); };
+        scheduleMenu.innerHTML = "";
+        scheduleMenu.appendChild(input);
+      }
+    }
+  ];
+
+  options.forEach(opt=>{
+    const btn = document.createElement("div");
+    btn.textContent = opt.text;
+    btn.style.padding = "8px 12px";
+    btn.style.cursor = "pointer";
+    btn.style.fontSize = "14px";
+    btn.onmouseenter = ()=>btn.style.background="#f2f2f7";
+    btn.onmouseleave = ()=>btn.style.background="#fff";
+    btn.onclick = opt.fn;
+    scheduleMenu.appendChild(btn);
+  });
+
+  document.body.appendChild(scheduleMenu);
+
+  function closeMenu() {
+    save();
+    render();
+    scheduleMenu?.remove();
+    scheduleMenu = null;
+  }
+
+  // Close menu if clicked outside
+  setTimeout(()=>{ 
+    document.addEventListener("click", outsideClick);
+  },0);
+
+  function outsideClick(e){
+    if(!scheduleMenu.contains(e.target)){
+      scheduleMenu.remove();
+      scheduleMenu=null;
+      document.removeEventListener("click", outsideClick);
+    }
+  }
+}
 </script>
 </body>
 </html>
