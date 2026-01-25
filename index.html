@@ -11,7 +11,6 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkSystemFont, "SF Pro Text", sans-serif;
   background: #f2f2f7;
-  overflow-x: hidden;
 }
 .hidden { display: none; }
 
@@ -32,10 +31,7 @@ header .title { font-size: 20px; font-weight: 700; }
 header .version { font-size: 12px; color: #888; }
 
 /* CONTENT */
-#content {
-  padding-top: 72px;
-  padding-bottom: 120px;
-}
+#content { padding-top: 72px; padding-bottom: 120px; }
 
 /* TASK */
 .task {
@@ -128,6 +124,29 @@ header .version { font-size: 12px; color: #888; }
   color: #fff;
 }
 
+/* ADVANCED ADD TASK PULL-UP */
+#advAddTask {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  max-height: 90%;
+  overflow-y: auto;
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.15);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 30;
+  padding: 16px;
+}
+#advAddTask .handle {
+  width: 40px;
+  height: 4px;
+  background: #ccc;
+  border-radius: 2px;
+  margin: 0 auto 12px;
+}
+
 /* DETAILS */
 #details {
   position: fixed;
@@ -185,33 +204,8 @@ textarea { resize: none; }
   font-size: 12px;
   color: #888;
 }
-
-/* ADVANCED ADD TASK PULL-UP */
-#advAddTask {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  max-height: 90%;
-  overflow-y: auto;
-  background: #fff;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  box-shadow: 0 -3px 10px rgba(0,0,0,0.15);
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-  z-index: 30;
-  padding: 16px;
-  touch-action: none;
-}
-#advAddTask .handle {
-  width: 40px;
-  height: 4px;
-  background: #ccc;
-  border-radius: 2px;
-  margin: 0 auto 12px;
-}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -302,81 +296,47 @@ let editMode = false;
 
 const SWIPE_WIDTH = 160; // action buttons width
 
-function save() { localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
+function save() {
+  localStorage.setItem("tasks_v064", JSON.stringify(tasks));
+}
 
-/* ADD TASK (quick add) */
+/* QUICK ADD */
 function addTask() {
   const t = newTitle.value.trim();
   if (!t) return;
   const now = Date.now();
   tasks.push({
-    id: now,
-    title: t,
-    desc: "",
-    priority: +newPriority.value,
-    done: false,
-    subtasks: [],
-    created: now,
-    edited: now
+    id: now, title: t, desc: "", priority: +newPriority.value, done: false,
+    subtasks: [], created: now, edited: now
   });
   newTitle.value = "";
-  save();
-  render();
+  save(); render();
 }
 
-/* ADD TASK (advanced) */
+/* ADVANCED ADD */
 function addAdvancedTask() {
   const t = advTitle.value.trim();
   if (!t) return;
   const now = Date.now();
-  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({ title: s, done: false }));
+  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({ title:s, done:false }));
   tasks.push({
-    id: now,
-    title: t,
-    desc: advDesc.value.trim(),
-    priority: +advPriority.value,
-    done: false,
-    subtasks: subs,
-    created: now,
-    edited: now
+    id: now, title: t, desc: advDesc.value.trim(),
+    priority: +advPriority.value, done: false, subtasks: subs, created: now, edited: now
   });
-  advTitle.value = "";
-  advDesc.value = "";
-  advSubtasks.value = "";
-  advPriority.value = 3;
-  save();
-  render();
-  closeAdvancedAdd();
+  advTitle.value = ""; advDesc.value = ""; advSubtasks.value = ""; advPriority.value = 3;
+  save(); render(); closeAdvancedAdd();
 }
 
-/* ADVANCED PULL-UP DRAG LOGIC */
+/* ADVANCED PULL-UP DRAG */
 let startY=0, currentY=0, dragging=false;
-
-adv.addEventListener("touchstart", e => {
-  startY = e.touches[0].clientY;
-  dragging = true;
-  adv.style.transition = "none";
-});
-adv.addEventListener("touchmove", e => {
-  if (!dragging) return;
-  e.stopPropagation();
-  e.preventDefault(); // stop background scroll
-  currentY = e.touches[0].clientY - startY;
-  if (currentY > 0) adv.style.transform = `translateY(${currentY}px)`;
-}, { passive: false });
-adv.addEventListener("touchend", () => {
-  dragging = false;
-  adv.style.transition = "transform 0.3s ease";
-  if (currentY > 100) adv.style.transform = "translateY(100%)";
-  else adv.style.transform = "translateY(0)";
-  currentY = 0;
-});
-
+adv.addEventListener("touchstart", e => { startY=e.touches[0].clientY; dragging=true; adv.style.transition="none"; });
+adv.addEventListener("touchmove", e => { if(!dragging) return; currentY=e.touches[0].clientY-startY; if(currentY>0) adv.style.transform=`translateY(${currentY}px)`; });
+adv.addEventListener("touchend", () => { dragging=false; adv.style.transition="transform 0.3s ease"; if(currentY>100) adv.style.transform="translateY(100%)"; else adv.style.transform="translateY(0)"; currentY=0; });
 function openAdvancedAdd(){ adv.style.transform="translateY(0)"; }
 function closeAdvancedAdd(){ adv.style.transform="translateY(100%)"; }
 
-/* RENDER */
-function render(){
+/* RENDER TASKS */
+function render() {
   tasksDiv.innerHTML="";
   tasks.forEach(task=>{
     const card=document.createElement("div");
@@ -396,113 +356,59 @@ function render(){
     const row=document.createElement("div");
     row.className="task-row";
 
-    let startX=0, dx=0;
-
+    let startX=0,dx=0;
     row.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
-    row.addEventListener("touchmove", e=>{
-      dx=e.touches[0].clientX-startX;
-      if(dx<0) row.style.transform=`translateX(${dx}px)`;
-    });
+    row.addEventListener("touchmove", e=>{ dx=e.touches[0].clientX-startX; if(dx<0) row.style.transform=`translateX(${dx}px)`; });
     row.addEventListener("touchend", ()=>{
-      if(dx<-80) row.style.transform=`translateX(-${SWIPE_WIDTH}px)`;
+      if(dx<-80) row.style.transform=`translateX(-${SWIPE_WIDTH}px)`; 
       else row.style.transform=`translateX(0)`;
       dx=0;
     });
 
-    const left=document.createElement("div");
-    left.className="task-left";
-    const cb=document.createElement("input");
-    cb.type="checkbox";
-    cb.checked=task.done;
-    cb.onchange=e=>{
-      task.done=cb.checked;
-      save(); render();
-      e.stopPropagation();
-    };
+    const left=document.createElement("div"); left.className="task-left";
+    const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=task.done;
+    cb.onchange=e=>{ task.done=cb.checked; save(); render(); e.stopPropagation(); };
     left.append(cb);
 
-    const mid=document.createElement("div");
-    mid.className="task-middle";
-    const title=document.createElement("div");
-    title.className="task-title";
-    title.textContent=task.title;
-    title.onclick=()=>openDetails(task.id);
-    mid.append(title);
+    const mid=document.createElement("div"); mid.className="task-middle";
+    const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title;
+    title.onclick=()=>openDetails(task.id); mid.append(title);
 
-    const right=document.createElement("div");
-    right.className="task-right";
-    const dot=document.createElement("div");
-    dot.className="dot";
-    dot.style.background=
-      task.priority===1?"#ff3b30":
-      task.priority===2?"#ff9500":"#34c759";
-    right.append(dot);
+    const right=document.createElement("div"); right.className="task-right";
+    const dot=document.createElement("div"); dot.className="dot";
+    dot.style.background = task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#34c759"; right.append(dot);
 
-    row.append(left, mid, right);
-    card.append(bg, row);
+    row.append(left,mid,right);
+    card.append(bg,row);
     tasksDiv.append(card);
   });
 }
 
 /* DETAILS */
-function openDetails(id){
-  active=tasks.find(t=>t.id===id);
-  editMode=false;
-  renderDetails();
-  details.classList.remove("hidden");
-}
+function openDetails(id){ active=tasks.find(t=>t.id===id); editMode=false; renderDetails(); details.classList.remove("hidden"); }
 function closeDetails(){ save(); render(); details.classList.add("hidden"); }
-function toggleEdit(){
-  if(editMode){
-    active.title=eTitle.value.trim();
-    active.desc=eDesc.value.trim();
-    active.edited=Date.now();
-    save();
-  }
-  editMode=!editMode;
-  editBtn.textContent=editMode?"Done":"Edit";
-  renderDetails();
-}
-function deleteTask(){
-  tasks=tasks.filter(t=>t.id!==active.id);
-  save(); closeDetails();
-}
+function toggleEdit(){ if(editMode){ active.title=eTitle.value.trim(); active.desc=eDesc.value.trim(); active.edited=Date.now(); save(); } editMode=!editMode; editBtn.textContent=editMode?"Done":"Edit"; renderDetails(); }
+function deleteTask(){ tasks=tasks.filter(t=>t.id!==active.id); save(); closeDetails(); }
 function renderDetails(){
-  vTitle.textContent=active.title;
-  vDesc.textContent=active.desc;
-  eTitle.value=active.title;
-  eDesc.value=active.desc;
+  vTitle.textContent=active.title; vDesc.textContent=active.desc;
+  eTitle.value=active.title; eDesc.value=active.desc;
   secDesc.classList.toggle("hidden",!editMode&&!active.desc);
   secSubs.classList.toggle("hidden",!editMode&&active.subtasks.length===0);
   [vTitle,vDesc].forEach(e=>e.classList.toggle("hidden",editMode));
   [eTitle,eDesc,subInput,addSubBtn,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
   subtasks.innerHTML="";
-  active.subtasks.forEach(s=>{
-    const r=document.createElement("div");
-    r.className="subtask";
-    r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
-    subtasks.append(r);
-  });
-  timestamps.textContent=
-    `Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
+  active.subtasks.forEach(s=>{ const r=document.createElement("div"); r.className="subtask"; r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`; subtasks.append(r); });
+  timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
-function addSubtasks(){
-  active.desc=eDesc.value.trim();
-  active.edited=Date.now();
-  subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false}));
-  subInput.value="";
-  save();
-  renderDetails();
-}
+function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
 
-function swipeBtn(icon,color,fn){
-  const b=document.createElement("div");
-  b.className="swipe-btn";
-  b.textContent=icon;
-  b.style.background=color;
-  b.onclick=e=>{e.stopPropagation();fn();};
-  return b;
-}
+function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
+
+/* SWIPE-RIGHT TO CLOSE DETAILS */
+let dStartX=0,dDx=0;
+details.addEventListener("touchstart", e=>{ if(e.touches.length!==1) return; dStartX=e.touches[0].clientX; dDx=0; });
+details.addEventListener("touchmove", e=>{ if(e.touches.length!==1) return; dDx=e.touches[0].clientX-dStartX; });
+details.addEventListener("touchend", ()=>{ if(dDx>80) closeDetails(); dDx=0; });
 
 render();
 </script>
