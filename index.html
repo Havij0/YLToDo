@@ -1,72 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta charset="UTF‑8" />
+<meta name="viewport" content="width=device‑width, initial‑scale=1, maximum‑scale=1, user‑scalable=no" />
 <title>Todo App – v0.8.5</title>
+
 <style>
-* { box-sizing: border-box; }
-body { margin: 0; font-family: -apple-system, BlinkSystemFont, "SF Pro Text", sans-serif; background: #f2f2f7; }
-.hidden { display: none; }
+* { box‑sizing: border‑box; }
+body { margin:0; font‑family: -apple‑system, BlinkMacSystemFont, "SF Pro Text", sans‑serif; background:#f2f2f7; }
 
 /* HEADER */
 header {
-  position: fixed; top: 0; left: 0; right: 0; height: 56px;
-  background: #fff; border-bottom: 1px solid #ddd;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px; z-index: 20;
+  position:fixed; top:0; left:0; right:0;
+  height:56px; background:#fff; border‑bottom:1px solid #ddd;
+  display:flex; align‑items:center; justify‑content:space‑between;
+  padding:0 16px; z‑index:20;
 }
-header .title { font-size: 20px; font-weight: 700; }
-header .version { font-size: 12px; color: #888; }
+header .title { font-size:20px; font‑weight:700; }
+header .version { font-size:12px; color:#888; }
 
 /* CONTENT */
-#content { padding-top: 72px; padding-bottom: 120px; }
+#content { padding‑top:72px; padding‑bottom:120px; }
 
-/* TASK */
-.task { background: #fff; margin: 10px 12px; border-radius: 16px; overflow: hidden; position: relative; }
-.task.done { opacity: 0.45; }
+/* TASK CARD */
+.task { background:#fff; margin:10px 12px; border‑radius:16px; overflow:hidden; position:relative; }
+.task.done { opacity:0.45; }
 
-.task-row { display: flex; align-items: center; min-height: 52px; padding: 0 14px; background: #fff;
-           position: relative; z-index: 2; transition: transform 0.25s ease, opacity 0.25s ease; touch-action: pan-y; }
+.task-row {
+  display:flex; align‑items:center;
+  min‑height:52px; padding:0 14px;
+  background:#fff; position:relative;
+  z‑index:2;
+  transition:transform 0.25s ease, opacity 0.25s ease;
+  touch‑action: pan‑y;
+}
 
-.task-left { width: 36px; }
-.task-middle { flex: 1; min-width: 0; }
-.task-right { width: 20px; }
+.task‑left { width:36px; }
+.task‑middle { flex:1; min‑width:0; }
+.task‑right { width:20px; }
 
-.task-title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.task‑title {
+  font‑size:16px; font‑weight:600;
+  white‑space:nowrap; overflow:hidden; text‑overflow:ellipsis;
+  cursor:pointer;
+}
 
-.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot { width:10px; height:10px; border‑radius:50%; }
 
-/* SWIPE */
-.swipe-bg { position: absolute; inset: 0; display: flex; justify-content: flex-end; align-items: center; padding-right: 10px; background: #f2f2f7; z-index: 1; }
-.swipe-btn { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-left: 8px; color: #fff; font-size: 18px; }
+/* SWIPE ACTIONS */
+.swipe-bg {
+  position:absolute; inset:0;
+  display:flex; justify‑content:flex‑end; align‑items:center;
+  padding‑right:10px; background:#f2f2f7; z‑index:1;
+}
+.swipe-btn {
+  width:44px; height:44px; border‑radius:14px;
+  display:flex; align‑items:center; justify‑content:center;
+  margin‑left:8px; color:#fff; font‑size:18px;
+}
 
 /* ADD BAR */
-#addBar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; padding: 10px 12px; display: flex; gap: 8px; z-index: 20; }
-#addBar input, #addBar select { flex: 1; font-size: 16px; padding: 12px; border-radius: 14px; border: 1px solid #ccc; }
-#addBar button { padding: 0 18px; font-size: 22px; border-radius: 14px; border: none; background: #000; color: #fff; }
+#addBar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:#fff; border‑top:1px solid #ddd;
+  padding:10px 12px; display:flex; gap:8px;
+  z‑index:20;
+}
+#addBar input, #addBar select {
+  flex:1; font‑size:16px; padding:12px; border:1px solid #ccc; border‑radius:14px;
+}
+#addBar button {
+  padding:0 18px; font‑size:22px; border:none;
+  border‑radius:14px; background:#000; color:#fff; cursor:pointer;
+}
 
 /* DETAILS */
-#details { position: fixed; inset: 0; background: #f2f2f7; z-index: 50; overflow-y: auto; touch-action: none; }
-#details .spacer { height: 72px; }
+#details {
+  position:fixed; inset:0; background:#f2f2f7;
+  z‑index:50; overflow‑y:auto; touch‑action:none;
+}
+#details .spacer { height:72px; }
 
-.section { background: #fff; margin: 12px; padding: 16px; border-radius: 16px; }
-.section h3 { margin: 0 0 8px; font-size: 13px; color: #666; }
-.read { font-size: 16px; }
+.section {
+  background:#fff; margin:12px; padding:16px; border‑radius:16px;
+}
+.section h3 { margin:0 0 8px; font‑size:13px; color:#666; }
+.read { font‑size:16px; }
 
-input, textarea, select { width: 100%; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid #ccc; }
-textarea { resize: none; }
+input, textarea, select {
+  width:100%; font‑size:16px; padding:12px;
+  border:1px solid #ccc; border‑radius:12px;
+}
+textarea { resize:none; }
 
-/* SUBTASK */
-.subtask { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.subtask input { width: 20px; height: 20px; }
-.subtask .text { flex: 1; }
+.subtask {
+  display:flex; align‑items:center; gap:8px; margin‑bottom:8px;
+}
+.subtask input { width:20px; height:20px; }
+.subtask .text { flex:1; }
 
-#deleteBtn { margin: 16px 12px; padding: 14px; font-size: 16px; border-radius: 16px; background: #ff3b30; color: #fff; border: none; }
-.timestamps { margin: 0 12px 24px; font-size: 12px; color: #888; }
+#deleteBtn {
+  margin:16px 12px; padding:14px;
+  font‑size:16px; border:none; border‑radius:16px;
+  background:#ff3b30; color:#fff; cursor:pointer;
+}
 
-/* ADVANCED TASK SWIPE */
-.adv-drag { cursor: grab; }
+.timestamps {
+  margin:0 12px 24px; font‑size:12px; color:#888;
+}
+
+/* ADVANCED ADD PULL‑UP */
+#advAddTask {
+  position:fixed; left:0; right:0; bottom:0;
+  max‑height:90%; overflow‑y:auto;
+  background:#fff; border‑top‑left‑radius:20px; border‑top‑right‑radius:20px;
+  box‑shadow: 0 ‑3px 10px rgba(0,0,0,0.15);
+  transform:translateY(100%);
+  transition:transform 0.3s ease;
+  z‑index:30; padding:16px;
+}
+#advAddTask .handle {
+  width:40px; height:4px; background:#ccc;
+  border‑radius:2px; margin:0 auto 12px;
+}
 </style>
 </head>
 
@@ -87,6 +143,33 @@ textarea { resize: none; }
     <option value="1">Must</option>
   </select>
   <button onclick="addTask()">+</button>
+  <button onclick="openAdvancedAdd()">⋁</button>
+</div>
+
+<!-- ADVANCED ADD TASK -->
+<div id="advAddTask">
+  <div class="handle"></div>
+  <h3>Advanced Add Task</h3>
+
+  <div class="section">
+    <input id="advTitle" placeholder="Title" />
+  </div>
+  <div class="section">
+    <textarea id="advDesc" rows="3" placeholder="Description"></textarea>
+  </div>
+  <div class="section">
+    <select id="advPriority">
+      <option value="3">Normal</option>
+      <option value="2">Important</option>
+      <option value="1">Must</option>
+    </select>
+  </div>
+  <div class="section">
+    <textarea id="advSubtasks" rows="3" placeholder="Subtasks (one per line)"></textarea>
+  </div>
+
+  <button onclick="addAdvancedTask()">Add Task</button>
+  <button onclick="closeAdvancedAdd()">Cancel</button>
 </div>
 
 <!-- DETAILS -->
@@ -121,114 +204,113 @@ textarea { resize: none; }
 </div>
 
 <script>
+/* STATE */
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 const tasksDiv = document.getElementById("tasks");
+
+const adv = document.getElementById("advAddTask");
+const advTitle = document.getElementById("advTitle");
+const advDesc = document.getElementById("advDesc");
+const advPriority = document.getElementById("advPriority");
+const advSubtasks = document.getElementById("advSubtasks");
+
 const details = document.getElementById("details");
-const eTitle = document.getElementById("eTitle");
-const eDesc = document.getElementById("eDesc");
 const vTitle = document.getElementById("vTitle");
 const vDesc = document.getElementById("vDesc");
+const eTitle = document.getElementById("eTitle");
+const eDesc = document.getElementById("eDesc");
 const secDesc = document.getElementById("secDesc");
 const secSubs = document.getElementById("secSubs");
 const subtasks = document.getElementById("subtasks");
 const subInput = document.getElementById("subInput");
 const addSubBtn = document.getElementById("addSubBtn");
 const deleteBtn = document.getElementById("deleteBtn");
-const timestamps = document.getElementById("timestamps");
 const editBtn = document.getElementById("editBtn");
-
-const SWIPE_WIDTH = 160;
+const timestamps = document.getElementById("timestamps");
 
 let tasks = JSON.parse(localStorage.getItem("tasks_v085") || "[]");
 let active = null;
 let editMode = false;
+const SWIPE_WIDTH = 160;
 
 /* SAVE */
-function save() { localStorage.setItem("tasks_v085", JSON.stringify(tasks)); }
+function save(){ localStorage.setItem("tasks_v085", JSON.stringify(tasks)); }
 
-/* ADD TASK */
-function addTask() {
-  const t = newTitle.value.trim();
-  if (!t) return;
-  const now = Date.now();
-  tasks.push({ id: now, title: t, desc: "", priority: +newPriority.value, done: false, subtasks: [], created: now, edited: now });
-  newTitle.value = "";
-  save(); render();
+/* QUICK ADD */
+function addTask(){
+  const t=newTitle.value.trim(); if(!t) return;
+  const now=Date.now();
+  tasks.push({ id:now, title:t, desc:"", priority:+newPriority.value, done:false, subtasks:[], created:now, edited:now });
+  newTitle.value=""; save(); render();
+}
+
+/* ADVANCED ADD */
+function openAdvancedAdd(){ adv.style.transform="translateY(0)"; }
+function closeAdvancedAdd(){ adv.style.transform="translateY(100%)"; }
+
+function addAdvancedTask(){
+  const t=advTitle.value.trim(); if(!t){ alert("Title required"); return; }
+  const now=Date.now();
+  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s=>({title:s,done:false}));
+  tasks.push({ id:now, title:t, desc:advDesc.value.trim(), priority:+advPriority.value, done:false, subtasks:subs, created:now, edited:now });
+  advTitle.value=""; advDesc.value=""; advSubtasks.value=""; advPriority.value="3";
+  save(); render(); closeAdvancedAdd();
 }
 
 /* RENDER */
-function render() {
-  tasksDiv.innerHTML = "";
-  tasks.forEach(task => {
-    const card = document.createElement("div");
-    card.className = "task" + (task.done ? " done" : "");
-
-    const bg = document.createElement("div");
-    bg.className = "swipe-bg";
+function render(){
+  tasksDiv.innerHTML="";
+  tasks.forEach(task=>{
+    const card=document.createElement("div");
+    card.className="task"+(task.done?" done":"");
+    const bg=document.createElement("div"); bg.className="swipe-bg";
     bg.append(
-      swipeBtn("✏️", "#007aff", () => openDetails(task.id)),
-      swipeBtn("📅", "#ff9500", () => alert("Reschedule later")),
-      swipeBtn("🗑", "#ff3b30", () => { tasks = tasks.filter(t => t.id !== task.id); save(); render(); })
+      swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
+      swipeBtn("📅","#ff9500",()=>alert("Schedule later")),
+      swipeBtn("🗑","#ff3b30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); })
     );
 
-    const row = document.createElement("div");
-    row.className = "task-row";
-    let startX = 0, dx = 0, locked = false;
+    const row=document.createElement("div"); row.className="task-row";
+    let startX=0, dx=0;
+    row.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+    row.addEventListener("touchmove",e=>{ dx=e.touches[0].clientX-startX; if(dx<0) row.style.transform=`translateX(${dx}px)`; });
+    row.addEventListener("touchend",()=>{ if(dx<‑80) row.style.transform=`translateX(-${SWIPE_WIDTH}px)`; else row.style.transform="translateX(0)"; dx=0; });
 
-    row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-    row.addEventListener("touchmove", e => {
-      dx = e.touches[0].clientX - startX;
-      if (dx < 0) row.style.transform = `translateX(${dx}px)`;
-    });
-    row.addEventListener("touchend", () => {
-      if (dx < -80) { row.style.transform = `translateX(-${SWIPE_WIDTH}px)`; row.style.opacity="0.4"; locked=true; row.style.pointerEvents="none"; bg.style.pointerEvents="auto"; }
-      else { row.style.transform="translateX(0)"; row.style.opacity="1"; locked=false; row.style.pointerEvents="auto"; bg.style.pointerEvents="none"; }
-      dx=0;
-    });
-
-    const left = document.createElement("div"); left.className="task-left";
-    const cb = document.createElement("input"); cb.type="checkbox"; cb.checked=task.done;
-    cb.onchange = e => { task.done = cb.checked; save(); render(); e.stopPropagation(); };
+    const left=document.createElement("div"); left.className="task-left";
+    const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=task.done;
+    cb.onchange=e=>{ task.done=cb.checked; save(); render(); e.stopPropagation(); };
     left.append(cb);
 
-    const mid = document.createElement("div"); mid.className="task-middle";
-    const title = document.createElement("div"); title.className="task-title"; title.textContent=task.title;
-    title.onclick = () => openDetails(task.id);
+    const mid=document.createElement("div"); mid.className="task-middle";
+    const title=document.createElement("div"); title.className="task-title"; title.textContent=task.title;
+    title.onclick=()=>openDetails(task.id);
     mid.append(title);
 
-    const right = document.createElement("div"); right.className="task-right";
-    const dot = document.createElement("div"); dot.className="dot";
+    const right=document.createElement("div"); right.className="task-right";
+    const dot=document.createElement("div"); dot.className="dot";
     dot.style.background = task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#34c759";
     right.append(dot);
 
-    row.append(left, mid, right); card.append(bg,row); tasksDiv.append(card);
+    row.append(left,mid,right); card.append(bg,row); tasksDiv.append(card);
   });
 }
 
 /* DETAILS */
-function openDetails(id) { active = tasks.find(t=>t.id===id); editMode=false; renderDetails(); details.classList.remove("hidden"); }
-function closeDetails() { save(); render(); details.classList.add("hidden"); }
+function openDetails(id){ active=tasks.find(t=>t.id===id); editMode=false; renderDetails(); details.classList.remove("hidden"); }
+function closeDetails(){ save(); render(); details.classList.add("hidden"); }
 
-/* SWIPE RIGHT TO CLOSE DETAILS */
-let dStartX=0, dDx=0;
-details.addEventListener("touchstart", e=>dStartX=e.touches[0].clientX);
-details.addEventListener("touchmove", e=>dDx=e.touches[0].clientX-dStartX);
-details.addEventListener("touchend", ()=>{
-  if(dDx>100){ closeDetails(); }
-  dDx=0;
-});
+/* SWIPE‑RIGHT TO CLOSE DETAILS */
+let dStart=0, dDx=0;
+details.addEventListener("touchstart",e=>dStart=e.touches[0].clientX);
+details.addEventListener("touchmove",e=>dDx=e.touches[0].clientX-dStart);
+details.addEventListener("touchend",()=>{ if(dDx>100) closeDetails(); dDx=0; });
 
-/* EDIT */
-function toggleEdit() {
-  if(editMode){ active.title=eTitle.value.trim(); active.desc=eDesc.value.trim(); active.edited=Date.now(); save(); }
-  editMode=!editMode; editBtn.textContent=editMode?"Done":"Edit"; renderDetails();
-}
-
-function deleteTask() { tasks = tasks.filter(t=>t.id!==active.id); save(); closeDetails(); }
-
-function renderDetails() {
-  vTitle.textContent=active.title; vDesc.textContent=active.desc; eTitle.value=active.title; eDesc.value=active.desc;
+function toggleEdit(){ if(editMode){ active.title=eTitle.value.trim(); active.desc=eDesc.value.trim(); active.edited=Date.now(); save(); } editMode=!editMode; editBtn.textContent=editMode?"Done":"Edit"; renderDetails(); }
+function deleteTask(){ tasks=tasks.filter(t=>t.id!==active.id); save(); closeDetails(); }
+function renderDetails(){
+  vTitle.textContent=active.title; vDesc.textContent=active.desc;
+  eTitle.value=active.title; eDesc.value=active.desc;
   secDesc.classList.toggle("hidden",!editMode && !active.desc);
   secSubs.classList.toggle("hidden",!editMode && active.subtasks.length===0);
   [vTitle,vDesc].forEach(e=>e.classList.toggle("hidden",editMode));
@@ -238,9 +320,9 @@ function renderDetails() {
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 
-function addSubtasks() { active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
+function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
 
-function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
+function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{e.stopPropagation();fn();}; return b; }
 
 render();
 </script>
