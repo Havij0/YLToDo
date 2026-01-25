@@ -294,8 +294,14 @@ function setReschedule(t){
   }
 }
 function applyReschedule(){
-  resTask.date=resDate.value||null;
-  save(); hideReschedule(); render();
+  if(!currentResTask) return;
+
+  // If no date selected → move to "To Be Scheduled"
+  currentResTask.scheduled = resInput.value || "";
+
+  save();
+  render();
+  hideResPopup();
 }
 
 /* HELPERS */
@@ -309,13 +315,31 @@ function offset(d){
   return n.toISOString().slice(0,10);
 }
 
-/* ADD BAR PULL UP */
-let sy=0;
-addBar.addEventListener("touchstart",e=>sy=e.touches[0].clientY);
-addBar.addEventListener("touchmove",e=>{
-  if(sy-e.touches[0].clientY>60) openAdvancedAdd();
+/* ===============================
+   ADD BAR : SWIPE UP TO OPEN ADVANCED ADD
+   =============================== */
+let addStartY = 0;
+let addDragging = false;
+
+addBar.addEventListener("touchstart", e => {
+  addStartY = e.touches[0].clientY;
+  addDragging = true;
 });
 
+addBar.addEventListener("touchmove", e => {
+  if (!addDragging) return;
+  const dy = addStartY - e.touches[0].clientY;
+
+  // Swipe up threshold
+  if (dy > 60) {
+    openAdvancedAdd();
+    addDragging = false;
+  }
+});
+
+addBar.addEventListener("touchend", () => {
+  addDragging = false;
+});
 /* DETAILS SWIPE BACK */
 let dx=0, dy=0;
 details.addEventListener("touchstart",e=>{
