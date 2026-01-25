@@ -380,7 +380,17 @@ function renderDetails(){
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
-function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
+function swipeBtn(icon,color,fn){ 
+    const b=document.createElement("div"); 
+    b.className="swipe-btn"; 
+    b.textContent=icon; 
+    b.style.background=color; 
+    b.onclick=e=>{ 
+        e.stopPropagation(); 
+        fn(e);  // pass the event to your function
+    }; 
+    return b; 
+}
 
 // ===============================
 // SCHEDULE POPUP
