@@ -316,7 +316,7 @@ function renderTaskCard(task){
   const bg=document.createElement("div"); bg.className="swipe-bg";
   bg.append(
     swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
-swipeBtn("📅","#ff9500",(e)=>openSchedulePopup(task.id, e))
+swipeBtn("📅","#ff9500",(ev)=>openSchedulePopup(task.id, ev))
     swipeBtn("🗑","#ff3b30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); })
   );
 
