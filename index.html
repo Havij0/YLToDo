@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.8.6.1</title>
+<title>Todo App – v0.8.6.2</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -27,15 +27,11 @@ header {
   padding: 0 16px;
   z-index: 20;
 }
-header .title { font-size: 20px; font-weight: 700; }
-header .version { font-size: 12px; color: #888; }
 
 /* CONTENT */
 #content {
   padding-top: 72px;
   padding-bottom: 120px;
-  overflow-y: auto;
-  position: relative;
 }
 
 /* TASK */
@@ -56,12 +52,11 @@ header .version { font-size: 12px; color: #888; }
   background: #fff;
   position: relative;
   z-index: 2;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-  touch-action: pan-y; /* allows vertical scroll */
+  transition: transform 0.25s ease;
 }
 
 .task-left { width: 36px; }
-.task-middle { flex: 1; min-width: 0; }
+.task-middle { flex: 1; }
 .task-right { width: 20px; }
 
 .task-title {
@@ -70,13 +65,6 @@ header .version { font-size: 12px; color: #888; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
 }
 
 /* SWIPE */
@@ -111,11 +99,9 @@ header .version { font-size: 12px; color: #888; }
   padding: 10px 12px;
   display: flex;
   gap: 8px;
-  z-index: 20;
 }
 #addBar input, #addBar select {
   flex: 1;
-  font-size: 16px;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid #ccc;
@@ -150,6 +136,7 @@ header .version { font-size: 12px; color: #888; }
   font-size: 13px;
   color: #666;
 }
+
 .read { font-size: 16px; }
 
 input, textarea, select {
@@ -159,42 +146,15 @@ input, textarea, select {
   border-radius: 12px;
   border: 1px solid #ccc;
 }
-input[type="date"] { height: 40px; padding: 8px; }
-
-textarea { resize: none; }
-
-/* SUBTASK */
-.subtask {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.subtask input { width: 20px; height: 20px; }
-.subtask .text { flex: 1; }
-
-#deleteBtn {
-  margin: 16px 12px;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 16px;
-  background: #ff3b30;
-  color: #fff;
-  border: none;
+input[type="date"] {
+  height: 40px;
 }
 
-.timestamps {
-  margin: 0 12px 24px;
-  font-size: 12px;
-  color: #888;
-}
-
-/* ADVANCED ADD TASK PULL-UP */
+/* ADVANCED ADD */
 #advAddTask {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   max-height: 90%;
-  overflow-y: auto;
   background: #fff;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
@@ -203,7 +163,7 @@ textarea { resize: none; }
   transition: transform 0.3s ease;
   z-index: 30;
   padding: 16px;
-  touch-action: none; /* prevent propagating to main scroll */
+  touch-action: none;
 }
 #advAddTask .handle {
   width: 40px;
@@ -218,8 +178,8 @@ textarea { resize: none; }
 <body>
 
 <header>
-  <div class="title">Today</div>
-  <div class="version">v0.8.6.1</div>
+  <div>Today</div>
+  <div style="font-size:12px;color:#888">v0.8.6.2</div>
 </header>
 
 <div id="content">
@@ -237,31 +197,13 @@ textarea { resize: none; }
   <button onclick="openAdvancedAdd()">⋁</button>
 </div>
 
-<!-- ADVANCED ADD TASK -->
+<!-- ADVANCED ADD -->
 <div id="advAddTask">
   <div class="handle"></div>
-  <h3>Advanced Add Task</h3>
-  <div class="section">
-    <input id="advTitle" placeholder="Task title" />
-  </div>
-  <div class="section">
-    <textarea id="advDesc" placeholder="Description" rows="3"></textarea>
-  </div>
-  <div class="section">
-    <select id="advPriority">
-      <option value="3">Normal</option>
-      <option value="2">Important</option>
-      <option value="1">Must</option>
-    </select>
-  </div>
-  <div class="section">
-    <textarea id="advSubtasks" placeholder="Subtasks, one per line" rows="3"></textarea>
-  </div>
-  <div class="section">
-    <label>Scheduled Date:</label>
-    <input type="date" id="advDate" />
-  </div>
-  <button onclick="addAdvancedTask()">Add Task</button>
+  <div class="section"><input id="advTitle" placeholder="Task title"></div>
+  <div class="section"><textarea id="advDesc" placeholder="Description" rows="3"></textarea></div>
+  <div class="section"><input type="date" id="advDate"></div>
+  <button onclick="addAdvancedTask()">Add</button>
   <button onclick="closeAdvancedAdd()">Cancel</button>
 </div>
 
@@ -272,266 +214,105 @@ textarea { resize: none; }
     <button id="editBtn" onclick="toggleEdit()">Edit</button>
   </header>
   <div class="spacer"></div>
+
   <div class="section">
     <h3>Title</h3>
     <div id="vTitle" class="read"></div>
     <input id="eTitle" class="hidden">
   </div>
+
+  <div class="section" id="secDate">
+    <h3>Scheduled Date</h3>
+    <div id="vDate" class="read"></div>
+    <input type="date" id="eDate" class="hidden">
+  </div>
+
   <div class="section hidden" id="secDesc">
     <h3>Description</h3>
     <div id="vDesc" class="read"></div>
     <textarea id="eDesc" class="hidden" rows="3"></textarea>
   </div>
-  <div class="section hidden" id="secSubs">
-    <h3>Subtasks</h3>
-    <div id="subtasks"></div>
-    <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
-    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
-  </div>
-  <div class="section hidden" id="secDate">
-    <h3>Scheduled Date</h3>
-    <input type="date" id="eDate" class="hidden">
-    <div id="vDate" class="read"></div>
-  </div>
+
   <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
-  <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
-const newTitle = document.getElementById("newTitle");
-const newPriority = document.getElementById("newPriority");
-const tasksDiv = document.getElementById("tasks");
-
-const adv = document.getElementById("advAddTask");
-const advTitle = document.getElementById("advTitle");
-const advDesc = document.getElementById("advDesc");
-const advPriority = document.getElementById("advPriority");
-const advSubtasks = document.getElementById("advSubtasks");
-const advDate = document.getElementById("advDate");
-
-let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
+const today = new Date().toISOString().slice(0,10);
+let tasks = JSON.parse(localStorage.getItem("tasks_v085") || "[]");
 let active = null;
 let editMode = false;
 
-const SWIPE_WIDTH = 160; // action buttons width
+advDate.value = today;
 
-// set default date to today
-const todayStr = new Date().toISOString().slice(0,10);
-advDate.value = todayStr;
+function save(){ localStorage.setItem("tasks_v085", JSON.stringify(tasks)); }
 
-function save() {
-  localStorage.setItem("tasks_v064", JSON.stringify(tasks));
+function addTask(){
+  tasks.push({id:Date.now(),title:newTitle.value,desc:"",scheduled:today});
+  newTitle.value=""; save(); render();
 }
 
-/* ADD TASK (quick add) */
-function addTask() {
-  const t = newTitle.value.trim();
-  if (!t) return;
-  const now = Date.now();
+function addAdvancedTask(){
   tasks.push({
-    id: now,
-    title: t,
-    desc: "",
-    priority: +newPriority.value,
-    done: false,
-    subtasks: [],
-    scheduled: todayStr,
-    created: now,
-    edited: now
+    id:Date.now(),
+    title:advTitle.value,
+    desc:advDesc.value,
+    scheduled:advDate.value||today
   });
-  newTitle.value = "";
-  save();
-  render();
+  closeAdvancedAdd(); save(); render();
 }
 
-/* ADD TASK (advanced) */
-function addAdvancedTask() {
-  const t = advTitle.value.trim();
-  if (!t) return;
-  const now = Date.now();
-  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({ title: s, done: false }));
-  tasks.push({
-    id: now,
-    title: t,
-    desc: advDesc.value.trim(),
-    priority: +advPriority.value,
-    done: false,
-    subtasks: subs,
-    scheduled: advDate.value || todayStr,
-    created: now,
-    edited: now
-  });
-  advTitle.value = "";
-  advDesc.value = "";
-  advSubtasks.value = "";
-  advPriority.value = 3;
-  advDate.value = todayStr;
-  save();
-  render();
-  closeAdvancedAdd();
-}
-
-/* ADVANCED PULL-UP DRAG LOGIC */
-let startY = 0, currentY = 0, dragging = false;
-
-adv.addEventListener("touchstart", e => {
-  startY = e.touches[0].clientY;
-  dragging = true;
-  adv.style.transition = "none";
-  e.stopPropagation();
-});
-adv.addEventListener("touchmove", e => {
-  if (!dragging) return;
-  currentY = e.touches[0].clientY - startY;
-  if (currentY > 0) adv.style.transform = `translateY(${currentY}px)`;
-  e.stopPropagation();
-});
-adv.addEventListener("touchend", e => {
-  dragging = false;
-  adv.style.transition = "transform 0.3s ease";
-  if (currentY > 100) adv.style.transform = "translateY(100%)";
-  else adv.style.transform = "translateY(0)";
-  currentY = 0;
-  e.stopPropagation();
-});
-
-function openAdvancedAdd() { adv.style.transform = "translateY(0)"; }
-function closeAdvancedAdd() { adv.style.transform = "translateY(100%)"; }
-
-/* RENDER */
-function render() {
-  tasksDiv.innerHTML = "";
-  tasks.forEach(task => {
-    const card = document.createElement("div");
-    card.className = "task" + (task.done ? " done" : "");
-    const bg = document.createElement("div");
-    bg.className = "swipe-bg";
-    bg.append(
-      swipeBtn("✏️", "#007aff", () => openDetails(task.id)),
-      swipeBtn("📅", "#ff9500", () => alert("Reschedule later")),
-      swipeBtn("🗑", "#ff3b30", () => {
-        tasks = tasks.filter(t => t.id !== task.id);
-        save(); render();
-      })
-    );
-
-    const row = document.createElement("div");
-    row.className = "task-row";
-
-    let startX = 0, dx = 0;
-
-    row.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-    row.addEventListener("touchmove", e => {
-      dx = e.touches[0].clientX - startX;
-      if (dx < 0) row.style.transform = `translateX(${dx}px)`;
-    });
-    row.addEventListener("touchend", () => {
-      if (dx < -80) row.style.transform = `translateX(-${SWIPE_WIDTH}px)`;
-      else row.style.transform = `translateX(0)`;
-      dx = 0;
-    });
-
-    const left = document.createElement("div");
-    left.className = "task-left";
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = task.done;
-    cb.onchange = e => {
-      task.done = cb.checked;
-      save(); render();
-      e.stopPropagation();
-    };
-    left.append(cb);
-
-    const mid = document.createElement("div");
-    mid.className = "task-middle";
-    const title = document.createElement("div");
-    title.className = "task-title";
-    title.textContent = task.title;
-    title.onclick = () => openDetails(task.id);
-    mid.append(title);
-
-    const right = document.createElement("div");
-    right.className = "task-right";
-    const dot = document.createElement("div");
-    dot.className = "dot";
-    dot.style.background =
-      task.priority === 1 ? "#ff3b30" :
-      task.priority === 2 ? "#ff9500" : "#34c759";
-    right.append(dot);
-
-    row.append(left, mid, right);
-    card.append(bg, row);
-    tasksDiv.append(card);
+function render(){
+  tasksDiv.innerHTML="";
+  tasks.forEach(t=>{
+    const d=document.createElement("div");
+    d.className="task";
+    d.innerHTML=`<div class="task-row"><div class="task-middle"><div class="task-title">${t.title}</div></div></div>`;
+    d.onclick=()=>openDetails(t.id);
+    tasksDiv.append(d);
   });
 }
 
-/* DETAILS */
-function openDetails(id) {
-  active = tasks.find(t => t.id === id);
-  editMode = false;
+function openDetails(id){
+  active=tasks.find(t=>t.id===id);
+  editMode=false;
   renderDetails();
   details.classList.remove("hidden");
 }
-function closeDetails() { save(); render(); details.classList.add("hidden"); }
-function toggleEdit() {
-  if (editMode) {
-    active.title = eTitle.value.trim();
-    active.desc = eDesc.value.trim();
-    active.scheduled = eDate.value;
-    active.edited = Date.now();
+
+function renderDetails(){
+  vTitle.textContent=active.title;
+  vDesc.textContent=active.desc;
+  vDate.textContent=active.scheduled;
+
+  eTitle.value=active.title;
+  eDesc.value=active.desc;
+  eDate.value=active.scheduled;
+
+  [vTitle,vDesc,vDate].forEach(e=>e.classList.toggle("hidden",editMode));
+  [eTitle,eDesc,eDate,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
+}
+
+function toggleEdit(){
+  if(editMode){
+    active.title=eTitle.value;
+    active.desc=eDesc.value;
+    active.scheduled=eDate.value;
     save();
   }
-  editMode = !editMode;
-  editBtn.textContent = editMode ? "Done" : "Edit";
+  editMode=!editMode;
+  editBtn.textContent=editMode?"Done":"Edit";
   renderDetails();
 }
-function deleteTask() {
-  tasks = tasks.filter(t => t.id !== active.id);
+
+function deleteTask(){
+  tasks=tasks.filter(t=>t.id!==active.id);
   save(); closeDetails();
 }
-function renderDetails() {
-  vTitle.textContent = active.title;
-  vDesc.textContent = active.desc;
-  eTitle.value = active.title;
-  eDesc.value = active.desc;
-  eDate.value = active.scheduled || todayStr;
-  vDate.textContent = active.scheduled || todayStr;
 
-  secDesc.classList.toggle("hidden", !editMode && !active.desc);
-  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
-  [vTitle,vDesc,vDate].forEach(e => e.classList.toggle("hidden", editMode));
-  [eTitle,eDesc,eDate,subInput,addSubBtn,deleteBtn].forEach(e => e.classList.toggle("hidden", !editMode));
+function closeDetails(){ details.classList.add("hidden"); render(); }
 
-  subtasks.innerHTML = "";
-  active.subtasks.forEach(s => {
-    const r = document.createElement("div");
-    r.className = "subtask";
-    r.innerHTML = `<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
-    subtasks.append(r);
-  });
-
-  timestamps.textContent =
-    `Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
-}
-
-function addSubtasks() {
-  active.desc = eDesc.value.trim();
-  active.edited = Date.now();
-  subInput.value.split("\n").filter(Boolean).forEach(t => active.subtasks.push({ title: t, done: false }));
-  subInput.value = "";
-  save();
-  renderDetails();
-}
-
-function swipeBtn(icon,color,fn){
-  const b=document.createElement("div");
-  b.className="swipe-btn";
-  b.textContent=icon;
-  b.style.background=color;
-  b.onclick=e=>{e.stopPropagation();fn();};
-  return b;
-}
+function openAdvancedAdd(){ advAddTask.style.transform="translateY(0)"; }
+function closeAdvancedAdd(){ advAddTask.style.transform="translateY(100%)"; }
 
 render();
 </script>
