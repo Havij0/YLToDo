@@ -618,6 +618,51 @@ advSheet.addEventListener("touchend", e => {
     advSheet.style.transform = "translateY(0)";
   }
 });
+/* ===============================
+   PATCH v0.8.7 – Swipe Back on Details
+   =============================== */
+
+/* VERSION BUMP */
+document.querySelector(".version").textContent = "v0.8.7";
+
+/* DETAILS SWIPE BACK */
+const detailsView = document.getElementById("details");
+
+let detailsStartX = 0;
+let detailsStartY = 0;
+let detailsTracking = false;
+
+detailsView.addEventListener("touchstart", e => {
+  if (e.touches.length !== 1) return;
+  detailsStartX = e.touches[0].clientX;
+  detailsStartY = e.touches[0].clientY;
+  detailsTracking = true;
+});
+
+detailsView.addEventListener("touchmove", e => {
+  if (!detailsTracking) return;
+
+  const dx = e.touches[0].clientX - detailsStartX;
+  const dy = e.touches[0].clientY - detailsStartY;
+
+  // Horizontal swipe only (ignore vertical scroll)
+  if (Math.abs(dx) > Math.abs(dy) && dx > 0) {
+    e.preventDefault(); // stop scroll
+  }
+});
+
+detailsView.addEventListener("touchend", e => {
+  if (!detailsTracking) return;
+  detailsTracking = false;
+
+  const dx = e.changedTouches[0].clientX - detailsStartX;
+
+  // Swipe right threshold
+  if (dx > 80) {
+    closeDetails();
+  }
+});
+
 </script>
 </body>
 </html>
