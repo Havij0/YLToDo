@@ -151,89 +151,128 @@ textarea { resize: none; }
 </div>
 
 <script>
+// Elements
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 const tasksDiv = document.getElementById("tasks");
-
 const adv = document.getElementById("advAddTask");
 const advTitle = document.getElementById("advTitle");
 const advDesc = document.getElementById("advDesc");
 const advPriority = document.getElementById("advPriority");
 const advSubtasks = document.getElementById("advSubtasks");
 const advDate = document.getElementById("advDate");
-
 const tabs = document.querySelectorAll(".tab");
+const addBar = document.getElementById("addBar");
+const detailsView = document.getElementById("details");
 
 let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
 let currentTab = "today";
-
 const SWIPE_WIDTH = 160;
 const todayStr = new Date().toISOString().slice(0,10);
 advDate.value = todayStr;
 
-// TAB SWITCHING
-tabs.forEach(tab => {
-  tab.addEventListener("click", () => {
-    currentTab = tab.dataset.tab;
-    tabs.forEach(t => t.classList.remove("active"));
+// ===============================
+// TAB SWITCH
+// ===============================
+tabs.forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    currentTab=tab.dataset.tab;
+    tabs.forEach(t=>t.classList.remove("active"));
     tab.classList.add("active");
     render();
   });
 });
 
+// ===============================
 // SAVE
-function save() { localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
+// ===============================
+function save(){ localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
 
+// ===============================
 // QUICK ADD
-function addTask() {
-  const t = newTitle.value.trim();
-  if (!t) return;
+// ===============================
+function addTask(){
+  const t=newTitle.value.trim();
+  if(!t) return;
   const now = Date.now();
+  let scheduled = "";
+  if(currentTab==="today") scheduled = todayStr; // only today tab assigns date
   tasks.push({
-    id: now, title: t, desc: "", priority: +newPriority.value, done: false,
-    subtasks: [], scheduled: todayStr, created: now, edited: now
+    id: now, title: t, desc: "", priority: +newPriority.value,
+    done:false, subtasks:[], scheduled, created:now, edited:now
   });
   newTitle.value = "";
   save(); render();
 }
 
+// ===============================
 // ADVANCED ADD
-function addAdvancedTask() {
-  const t = advTitle.value.trim(); if (!t) return;
+// ===============================
+function addAdvancedTask(){
+  const t = advTitle.value.trim(); if(!t) return;
   const now = Date.now();
-  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({ title: s, done: false }));
+  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s=>({title:s,done:false}));
   tasks.push({
-    id: now,
-    title: t,
-    desc: advDesc.value.trim(),
-    priority: +advPriority.value,
-    done: false,
-    subtasks: subs,
-    scheduled: advDate.value || "",
-    created: now,
-    edited: now
+    id:now, title:t, desc:advDesc.value.trim(), priority:+advPriority.value,
+    done:false, subtasks:subs, scheduled:advDate.value||"", created:now, edited:now
   });
-  advTitle.value = ""; advDesc.value = ""; advSubtasks.value = ""; advPriority.value = 3; advDate.value = todayStr;
+  advTitle.value=""; advDesc.value=""; advSubtasks.value=""; advPriority.value=3; advDate.value=todayStr;
   save(); render(); closeAdvancedAdd();
 }
 
-// ADVANCED PULL-UP
-let startY = 0, currentY = 0, dragging = false;
-adv.addEventListener("touchstart", e => { startY = e.touches[0].clientY; dragging=true; adv.style.transition="none"; e.stopPropagation(); });
-adv.addEventListener("touchmove", e => { if(!dragging) return; currentY=e.touches[0].clientY-startY; if(currentY>0) adv.style.transform=`translateY(${currentY}px)`; e.stopPropagation(); });
-adv.addEventListener("touchend", e => { dragging=false; adv.style.transition="transform 0.3s ease"; if(currentY>100) adv.style.transform="translateY(100%)"; else adv.style.transform="translateY(0)"; currentY=0; e.stopPropagation(); });
+// ===============================
+// ADVANCED ADD PULL-UP PATCH
+// ===============================
+let addStartY=0, addDragging=false;
+addBar.addEventListener("touchstart", e=>{ addStartY=e.touches[0].clientY; addDragging=true; });
+addBar.addEventListener("touchmove", e=>{
+  if(!addDragging) return;
+  const dy = addStartY - e.touches[0].clientY;
+  if(dy>60){ openAdvancedAdd(); addDragging=false; }
+});
+addBar.addEventListener("touchend",()=>{ addDragging=false; });
+
+let advStartY=0, advDragging=false;
+adv.addEventListener("touchstart", e=>{ advStartY=e.touches[0].clientY; advDragging=true; adv.style.transition="none"; });
+adv.addEventListener("touchmove", e=>{ if(!advDragging) return; const dy=e.touches[0].clientY-advStartY; if(dy>0) adv.style.transform=`translateY(${dy}px)`; });
+adv.addEventListener("touchend", e=>{ advDragging=false; adv.style.transition="transform 0.3s ease"; const dy=e.changedTouches[0].clientY-advStartY; if(dy>120) closeAdvancedAdd(); else adv.style.transform="translateY(0)"; });
+
+// ===============================
+// DETAILS SWIPE BACK PATCH
+// ===============================
+let detailsStartX=0, detailsStartY=0, detailsTracking=false;
+detailsView.addEventListener("touchstart", e=>{
+  if(e.touches.length!==1) return;
+  detailsStartX=e.touches[0].clientX; detailsStartY=e.touches[0].clientY; detailsTracking=true;
+});
+detailsView.addEventListener("touchmove", e=>{
+  if(!detailsTracking) return;
+  const dx=e.touches[0].clientX - detailsStartX;
+  const dy=e.touches[0].clientY - detailsStartY;
+  if(Math.abs(dx)>Math.abs(dy) && dx>0) e.preventDefault();
+});
+detailsView.addEventListener("touchend", e=>{
+  if(!detailsTracking) return; detailsTracking=false;
+  const dx = e.changedTouches[0].clientX - detailsStartX;
+  if(dx>80) closeDetails();
+});
+
+// ===============================
+// ADVANCED PULL-UP FUNCTIONS
+// ===============================
 function openAdvancedAdd(){ adv.style.transform="translateY(0)"; }
 function closeAdvancedAdd(){ adv.style.transform="translateY(100%)"; }
 
-// RENDER
-function render() {
+// ===============================
+// RENDER TASKS
+// ===============================
+function render(){
   tasksDiv.innerHTML="";
   tasks.filter(t=>{
     if(currentTab==="today") return t.scheduled===todayStr;
-    if(currentTab==="unscheduled") return !t.scheduled||t.scheduled==="";
-    return true;
+    if(currentTab==="unscheduled") return !t.scheduled||t.scheduled===""; return true;
   }).forEach(task=>{
     const card=document.createElement("div");
     card.className="task"+(task.done?" done":"");
@@ -241,7 +280,7 @@ function render() {
     bg.append(
       swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
       swipeBtn("📅","#ff9500",()=>alert("Reschedule later")),
-      swipeBtn("🗑","#ff3b30",()=>{tasks=tasks.filter(t=>t.id!==task.id); save(); render();})
+      swipeBtn("🗑","#ff3b30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); })
     );
 
     const row=document.createElement("div"); row.className="task-row";
@@ -268,15 +307,16 @@ function render() {
   });
 }
 
-// DETAILS
-function openDetails(id){ active=tasks.find(t=>t.id===id); editMode=false; renderDetails(); details.classList.remove("hidden"); }
-function closeDetails(){ save(); render(); details.classList.add("hidden"); }
+// ===============================
+// DETAILS FUNCTIONS
+// ===============================
+function openDetails(id){ active=tasks.find(t=>t.id===id); editMode=false; renderDetails(); detailsView.classList.remove("hidden"); }
+function closeDetails(){ save(); render(); detailsView.classList.add("hidden"); }
 function toggleEdit(){
   if(editMode){ active.title=eTitle.value.trim(); active.desc=eDesc.value.trim(); active.scheduled=eDate.value; active.edited=Date.now(); save(); }
   editMode=!editMode; editBtn.textContent=editMode?"Done":"Edit"; renderDetails();
 }
 function deleteTask(){ tasks=tasks.filter(t=>t.id!==active.id); save(); closeDetails(); }
-
 function renderDetails(){
   vTitle.textContent=active.title; vDesc.textContent=active.desc; eTitle.value=active.title; eDesc.value=active.desc;
   eDate.value=active.scheduled||todayStr; vDate.textContent=active.scheduled||todayStr;
@@ -288,124 +328,10 @@ function renderDetails(){
   subtasks.innerHTML=""; active.subtasks.forEach(s=>{ const r=document.createElement("div"); r.className="subtask"; r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`; subtasks.append(r); });
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
-
 function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
-
 function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
 
 render();
-
-/* ===============================
-   PATCH v0.8.6.2 – AddBar Pull-Up
-   =============================== */
-
-/* VERSION BUMP (visual only) */
-document.querySelector(".version").textContent = "v0.8.6.2";
-
-/* ELEMENTS */
-const addBar = document.getElementById("addBar");
-const advSheet = document.getElementById("advAddTask");
-
-/* --- ADD BAR : PULL UP TO OPEN ADVANCED --- */
-let addStartY = 0;
-let addDragging = false;
-
-addBar.addEventListener("touchstart", e => {
-  addStartY = e.touches[0].clientY;
-  addDragging = true;
-});
-
-addBar.addEventListener("touchmove", e => {
-  if (!addDragging) return;
-  const dy = addStartY - e.touches[0].clientY;
-
-  // pull up threshold
-  if (dy > 60) {
-    openAdvancedAdd();
-    addDragging = false;
-  }
-});
-
-addBar.addEventListener("touchend", () => {
-  addDragging = false;
-});
-
-/* --- ADVANCED SHEET : PULL DOWN TO CLOSE --- */
-let advStartY = 0;
-let advDragging = false;
-
-advSheet.addEventListener("touchstart", e => {
-  advStartY = e.touches[0].clientY;
-  advDragging = true;
-  advSheet.style.transition = "none";
-});
-
-advSheet.addEventListener("touchmove", e => {
-  if (!advDragging) return;
-  const dy = e.touches[0].clientY - advStartY;
-
-  if (dy > 0) {
-    advSheet.style.transform = `translateY(${dy}px)`;
-  }
-});
-
-advSheet.addEventListener("touchend", e => {
-  advDragging = false;
-  advSheet.style.transition = "transform 0.3s ease";
-
-  const dy = e.changedTouches[0].clientY - advStartY;
-
-  if (dy > 120) {
-    closeAdvancedAdd();
-  } else {
-    advSheet.style.transform = "translateY(0)";
-  }
-});
-/* ===============================
-   PATCH v0.8.7 – Swipe Back on Details
-   =============================== */
-
-/* VERSION BUMP */
-document.querySelector(".version").textContent = "v0.8.7";
-
-/* DETAILS SWIPE BACK */
-const detailsView = document.getElementById("details");
-
-let detailsStartX = 0;
-let detailsStartY = 0;
-let detailsTracking = false;
-
-detailsView.addEventListener("touchstart", e => {
-  if (e.touches.length !== 1) return;
-  detailsStartX = e.touches[0].clientX;
-  detailsStartY = e.touches[0].clientY;
-  detailsTracking = true;
-});
-
-detailsView.addEventListener("touchmove", e => {
-  if (!detailsTracking) return;
-
-  const dx = e.touches[0].clientX - detailsStartX;
-  const dy = e.touches[0].clientY - detailsStartY;
-
-  // Horizontal swipe only (ignore vertical scroll)
-  if (Math.abs(dx) > Math.abs(dy) && dx > 0) {
-    e.preventDefault(); // stop scroll
-  }
-});
-
-detailsView.addEventListener("touchend", e => {
-  if (!detailsTracking) return;
-  detailsTracking = false;
-
-  const dx = e.changedTouches[0].clientX - detailsStartX;
-
-  // Swipe right threshold
-  if (dx > 80) {
-    closeDetails();
-  }
-});
-
 </script>
 </body>
 </html>
