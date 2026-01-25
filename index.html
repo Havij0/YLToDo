@@ -7,224 +7,105 @@
 
 <style>
 * { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkSystemFont, "SF Pro Text", sans-serif;
-  background: #f2f2f7;
-}
+body { margin: 0; font-family: -apple-system, BlinkSystemFont, "SF Pro Text", sans-serif; background: #f2f2f7; }
 .hidden { display: none; }
 
 /* HEADER */
 header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
+  position: fixed; top: 0; left: 0; right: 0;
   height: 56px;
   background: #fff;
   border-bottom: 1px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   padding: 0 16px;
   z-index: 20;
 }
 header .title { font-size: 20px; font-weight: 700; }
 header .version { font-size: 12px; color: #888; }
 
-/* CONTENT */
-#content {
-  padding-top: 72px;
-  padding-bottom: 120px;
-  overflow-y: auto;
-  position: relative;
+/* TAB BAR */
+#tabBar {
+  position: fixed; top: 56px; left: 0; right: 0;
+  height: 44px;
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  z-index: 20;
 }
+.tab {
+  flex: 1;
+  text-align: center;
+  line-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+}
+.tab.active { color: #000; border-bottom: 2px solid #000; }
+
+/* CONTENT */
+#content { padding-top: 102px; padding-bottom: 120px; overflow-y: auto; position: relative; }
 
 /* TASK */
-.task {
-  background: #fff;
-  margin: 10px 12px;
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-}
+.task { background: #fff; margin: 10px 12px; border-radius: 16px; overflow: hidden; position: relative; }
 .task.done { opacity: 0.45; }
-
-.task-row {
-  display: flex;
-  align-items: center;
-  min-height: 52px;
-  padding: 0 14px;
-  background: #fff;
-  position: relative;
-  z-index: 2;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-  touch-action: pan-y; /* allows vertical scroll */
-}
-
+.task-row { display: flex; align-items: center; min-height: 52px; padding: 0 14px; background: #fff; position: relative; z-index: 2; transition: transform 0.25s ease, opacity 0.25s ease; touch-action: pan-y; }
 .task-left { width: 36px; }
 .task-middle { flex: 1; min-width: 0; }
 .task-right { width: 20px; }
-
-.task-title {
-  font-size: 16px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+.task-title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
 
 /* SWIPE */
-.swipe-bg {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding-right: 10px;
-  background: #f2f2f7;
-  z-index: 1;
-}
-.swipe-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  color: #fff;
-  font-size: 18px;
-}
+.swipe-bg { position: absolute; inset: 0; display: flex; justify-content: flex-end; align-items: center; padding-right: 10px; background: #f2f2f7; z-index: 1; }
+.swipe-btn { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-left: 8px; color: #fff; font-size: 18px; }
 
 /* ADD BAR */
-#addBar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: #fff;
-  border-top: 1px solid #ddd;
-  padding: 10px 12px;
-  display: flex;
-  gap: 8px;
-  z-index: 20;
-}
-#addBar input, #addBar select {
-  flex: 1;
-  font-size: 16px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid #ccc;
-}
-#addBar button {
-  padding: 0 18px;
-  font-size: 22px;
-  border-radius: 14px;
-  border: none;
-  background: #000;
-  color: #fff;
-}
+#addBar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; padding: 10px 12px; display: flex; gap: 8px; z-index: 20; }
+#addBar input, #addBar select { flex: 1; font-size: 16px; padding: 12px; border-radius: 14px; border: 1px solid #ccc; }
+#addBar button { padding: 0 18px; font-size: 22px; border-radius: 14px; border: none; background: #000; color: #fff; }
 
 /* DETAILS */
-#details {
-  position: fixed;
-  inset: 0;
-  background: #f2f2f7;
-  z-index: 50;
-  overflow-y: auto;
-}
+#details { position: fixed; inset: 0; background: #f2f2f7; z-index: 50; overflow-y: auto; }
 #details .spacer { height: 72px; }
-
-.section {
-  background: #fff;
-  margin: 12px;
-  padding: 12px 16px;
-  border-radius: 16px;
-}
-.section h3 {
-  margin: 0 0 8px;
-  font-size: 13px;
-  color: #666;
-}
+.section { background: #fff; margin: 12px; padding: 12px 16px; border-radius: 16px; }
+.section h3 { margin: 0 0 8px; font-size: 13px; color: #666; }
 .read { font-size: 16px; }
-
-input, textarea, select {
-  width: 100%;
-  font-size: 16px;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-}
+input, textarea, select { width: 100%; font-size: 16px; padding: 10px; border-radius: 12px; border: 1px solid #ccc; }
 input[type="date"] { height: 40px; padding: 8px; }
-
 textarea { resize: none; }
 
 /* SUBTASK */
-.subtask {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
+.subtask { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .subtask input { width: 20px; height: 20px; }
 .subtask .text { flex: 1; }
-
-#deleteBtn {
-  margin: 16px 12px;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 16px;
-  background: #ff3b30;
-  color: #fff;
-  border: none;
-}
-
-.timestamps {
-  margin: 0 12px 24px;
-  font-size: 12px;
-  color: #888;
-}
+#deleteBtn { margin: 16px 12px; padding: 14px; font-size: 16px; border-radius: 16px; background: #ff3b30; color: #fff; border: none; }
+.timestamps { margin: 0 12px 24px; font-size: 12px; color: #888; }
 
 /* ADVANCED ADD TASK PULL-UP */
 #advAddTask {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  max-height: 90%;
-  overflow-y: auto;
-  background: #fff;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
+  position: fixed; left: 0; right: 0; bottom: 0;
+  max-height: 90%; overflow-y: auto; background: #fff;
+  border-top-left-radius: 20px; border-top-right-radius: 20px;
   box-shadow: 0 -3px 10px rgba(0,0,0,0.15);
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-  z-index: 30;
-  padding: 16px;
-  touch-action: none; /* prevent propagating to main scroll */
+  transform: translateY(100%); transition: transform 0.3s ease; z-index: 30; padding: 16px; touch-action: none;
 }
-#advAddTask .handle {
-  width: 40px;
-  height: 4px;
-  background: #ccc;
-  border-radius: 2px;
-  margin: 0 auto 12px;
-}
+#advAddTask .handle { width: 40px; height: 4px; background: #ccc; border-radius: 2px; margin: 0 auto 12px; }
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="title">Today</div>
+  <div class="title">Todo App</div>
   <div class="version">v0.8.8</div>
 </header>
 
-<div id="content">
-  <div id="tasks"></div>
+<div id="tabBar">
+  <div class="tab active" data-tab="today">Today</div>
+  <div class="tab" data-tab="unscheduled">To Be Scheduled</div>
 </div>
+
+<div id="content"><div id="tasks"></div></div>
 
 <div id="addBar">
   <input id="newTitle" placeholder="New task…" />
@@ -241,26 +122,15 @@ textarea { resize: none; }
 <div id="advAddTask">
   <div class="handle"></div>
   <h3>Advanced Add Task</h3>
-  <div class="section">
-    <input id="advTitle" placeholder="Task title" />
-  </div>
-  <div class="section">
-    <textarea id="advDesc" placeholder="Description" rows="3"></textarea>
-  </div>
-  <div class="section">
-    <select id="advPriority">
-      <option value="3">Normal</option>
-      <option value="2">Important</option>
-      <option value="1">Must</option>
-    </select>
-  </div>
-  <div class="section">
-    <textarea id="advSubtasks" placeholder="Subtasks, one per line" rows="3"></textarea>
-  </div>
-  <div class="section">
-    <label>Scheduled Date:</label>
-    <input type="date" id="advDate" />
-  </div>
+  <div class="section"><input id="advTitle" placeholder="Task title" /></div>
+  <div class="section"><textarea id="advDesc" placeholder="Description" rows="3"></textarea></div>
+  <div class="section"><select id="advPriority">
+    <option value="3">Normal</option>
+    <option value="2">Important</option>
+    <option value="1">Must</option>
+  </select></div>
+  <div class="section"><textarea id="advSubtasks" placeholder="Subtasks, one per line" rows="3"></textarea></div>
+  <div class="section"><label>Scheduled Date:</label><input type="date" id="advDate" /></div>
   <button onclick="addAdvancedTask()">Add Task</button>
   <button onclick="closeAdvancedAdd()">Cancel</button>
 </div>
@@ -272,123 +142,138 @@ textarea { resize: none; }
     <button id="editBtn" onclick="toggleEdit()">Edit</button>
   </header>
   <div class="spacer"></div>
-  <div class="section">
-    <h3>Title</h3>
-    <div id="vTitle" class="read"></div>
-    <input id="eTitle" class="hidden">
-  </div>
-  <div class="section hidden" id="secDesc">
-    <h3>Description</h3>
-    <div id="vDesc" class="read"></div>
-    <textarea id="eDesc" class="hidden" rows="3"></textarea>
-  </div>
-  <div class="section hidden" id="secSubs">
-    <h3>Subtasks</h3>
-    <div id="subtasks"></div>
-    <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
-    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
-  </div>
-  <div class="section" id="secDate">
-    <h3>Scheduled Date</h3>
-    <input type="date" id="eDate">
-    <div id="vDate" class="read"></div>
-  </div>
+  <div class="section"><h3>Title</h3><div id="vTitle" class="read"></div><input id="eTitle" class="hidden"></div>
+  <div class="section hidden" id="secDesc"><h3>Description</h3><div id="vDesc" class="read"></div><textarea id="eDesc" class="hidden" rows="3"></textarea></div>
+  <div class="section hidden" id="secSubs"><h3>Subtasks</h3><div id="subtasks"></div><textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea><button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button></div>
+  <div class="section" id="secDate"><h3>Scheduled Date</h3><input type="date" id="eDate" class="hidden"><div id="vDate" class="read"></div></div>
   <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
   <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
+// Elements
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 const tasksDiv = document.getElementById("tasks");
-
 const adv = document.getElementById("advAddTask");
 const advTitle = document.getElementById("advTitle");
 const advDesc = document.getElementById("advDesc");
 const advPriority = document.getElementById("advPriority");
 const advSubtasks = document.getElementById("advSubtasks");
 const advDate = document.getElementById("advDate");
+const tabs = document.querySelectorAll(".tab");
+const addBar = document.getElementById("addBar");
+const detailsView = document.getElementById("details");
 
 let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
-let currentTab = "today"; // "today" or "tobe-scheduled"
-
-const SWIPE_WIDTH = 160; // action buttons width
-
-// Default date
+let currentTab = "today";
+const SWIPE_WIDTH = 160;
 const todayStr = new Date().toISOString().slice(0,10);
-advDate.value = todayStr;
+advDate.value = "";
 
-/* SAVE */
-function save() { localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
+// ===============================
+// TAB SWITCH
+// ===============================
+tabs.forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    currentTab=tab.dataset.tab;
+    tabs.forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    render();
+  });
+});
 
-/* QUICK ADD */
-function addTask() {
-  const t = newTitle.value.trim();
-  if (!t) return;
+// ===============================
+// SAVE
+// ===============================
+function save(){ localStorage.setItem("tasks_v064", JSON.stringify(tasks)); }
+
+// ===============================
+// QUICK ADD
+// ===============================
+function addTask(){
+  const t=newTitle.value.trim();
+  if(!t) return;
   const now = Date.now();
   let scheduled = "";
-  if(currentTab==="today") scheduled = todayStr; // today tab gets today
+  if(currentTab==="today") scheduled = todayStr; // only today tab assigns date
   tasks.push({
-    id: now,
-    title: t,
-    desc: "",
-    priority: +newPriority.value,
-    done: false,
-    subtasks: [],
-    scheduled: scheduled,
-    created: now,
-    edited: now
+    id: now, title: t, desc: "", priority: +newPriority.value,
+    done:false, subtasks:[], scheduled, created:now, edited:now
   });
   newTitle.value = "";
   save(); render();
 }
 
-/* ADVANCED ADD */
-function addAdvancedTask() {
-  const t = advTitle.value.trim();
-  if (!t) return;
+// ===============================
+// ADVANCED ADD
+// ===============================
+function addAdvancedTask(){
+  const t = advTitle.value.trim(); if(!t) return;
   const now = Date.now();
-  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({ title: s, done: false }));
+  const subs = advSubtasks.value.split("\n").filter(Boolean).map(s=>({title:s,done:false}));
   tasks.push({
-    id: now,
-    title: t,
-    desc: advDesc.value.trim(),
-    priority: +advPriority.value,
-    done: false,
-    subtasks: subs,
-    scheduled: advDate.value || "", // can be empty
-    created: now,
-    edited: now
+    id:now, title:t, desc:advDesc.value.trim(), priority:+advPriority.value,
+    done:false, subtasks:subs, scheduled:advDate.value||"", created:now, edited:now
   });
-  advTitle.value = "";
-  advDesc.value = "";
-  advSubtasks.value = "";
-  advPriority.value = 3;
-  advDate.value = todayStr;
-  save(); render();
-  closeAdvancedAdd();
+  advTitle.value=""; advDesc.value=""; advSubtasks.value=""; advPriority.value=3; advDate.value=todayStr;
+  save(); render(); closeAdvancedAdd();
 }
 
-/* ADVANCED PULL-UP */
+// ===============================
+// ADVANCED ADD PULL-UP PATCH
+// ===============================
 let addStartY=0, addDragging=false;
 addBar.addEventListener("touchstart", e=>{ addStartY=e.touches[0].clientY; addDragging=true; });
-addBar.addEventListener("touchmove", e=>{ if(!addDragging) return; const dy=addStartY-e.touches[0].clientY; if(dy>60){ openAdvancedAdd(); addDragging=false; } });
-addBar.addEventListener("touchend", ()=>{ addDragging=false; });
+addBar.addEventListener("touchmove", e=>{
+  if(!addDragging) return;
+  const dy = addStartY - e.touches[0].clientY;
+  if(dy>60){ openAdvancedAdd(); addDragging=false; }
+});
+addBar.addEventListener("touchend",()=>{ addDragging=false; });
 
 let advStartY=0, advDragging=false;
 adv.addEventListener("touchstart", e=>{ advStartY=e.touches[0].clientY; advDragging=true; adv.style.transition="none"; });
 adv.addEventListener("touchmove", e=>{ if(!advDragging) return; const dy=e.touches[0].clientY-advStartY; if(dy>0) adv.style.transform=`translateY(${dy}px)`; });
 adv.addEventListener("touchend", e=>{ advDragging=false; adv.style.transition="transform 0.3s ease"; const dy=e.changedTouches[0].clientY-advStartY; if(dy>120) closeAdvancedAdd(); else adv.style.transform="translateY(0)"; });
 
+// ===============================
+// DETAILS SWIPE BACK PATCH
+// ===============================
+let detailsStartX=0, detailsStartY=0, detailsTracking=false;
+detailsView.addEventListener("touchstart", e=>{
+  if(e.touches.length!==1) return;
+  detailsStartX=e.touches[0].clientX; detailsStartY=e.touches[0].clientY; detailsTracking=true;
+});
+detailsView.addEventListener("touchmove", e=>{
+  if(!detailsTracking) return;
+  const dx=e.touches[0].clientX - detailsStartX;
+  const dy=e.touches[0].clientY - detailsStartY;
+  if(Math.abs(dx)>Math.abs(dy) && dx>0) e.preventDefault();
+});
+detailsView.addEventListener("touchend", e=>{
+  if(!detailsTracking) return; detailsTracking=false;
+  const dx = e.changedTouches[0].clientX - detailsStartX;
+  if(dx>80) closeDetails();
+});
+
+// ===============================
+// ADVANCED PULL-UP FUNCTIONS
+// ===============================
 function openAdvancedAdd(){ adv.style.transform="translateY(0)"; }
 function closeAdvancedAdd(){ adv.style.transform="translateY(100%)"; }
 
-/* RENDER TASKS */
+// ===============================
+// RENDER TASKS
+// ===============================
 function render(){
   tasksDiv.innerHTML="";
-  tasks.forEach(task=>{
+  tasks.filter(t=>{
+    if(currentTab==="today") return t.scheduled===todayStr;
+    if(currentTab==="unscheduled") return !t.scheduled||t.scheduled===""; return true;
+  }).forEach(task=>{
     const card=document.createElement("div");
     card.className="task"+(task.done?" done":"");
     const bg=document.createElement("div"); bg.className="swipe-bg";
@@ -402,7 +287,7 @@ function render(){
     let startX=0, dx=0;
     row.addEventListener("touchstart", e=>startX=e.touches[0].clientX);
     row.addEventListener("touchmove", e=>{ dx=e.touches[0].clientX-startX; if(dx<0) row.style.transform=`translateX(${dx}px)`; });
-    row.addEventListener("touchend", ()=>{ if(dx<-80) row.style.transform=`translateX(-${SWIPE_WIDTH}px)`; else row.style.transform=`translateX(0)`; dx=0; });
+    row.addEventListener("touchend", ()=>{ if(dx<-80) row.style.transform=`translateX(-${SWIPE_WIDTH}px)`; else row.style.transform="translateX(0)"; dx=0; });
 
     const left=document.createElement("div"); left.className="task-left";
     const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=task.done;
@@ -418,74 +303,35 @@ function render(){
     dot.style.background=task.priority===1?"#ff3b30":task.priority===2?"#ff9500":"#34c759";
     right.append(dot);
 
-    row.append(left, mid, right); card.append(bg, row); tasksDiv.append(card);
+    row.append(left,mid,right); card.append(bg,row); tasksDiv.append(card);
   });
 }
 
-/* DETAILS */
-const detailsView = document.getElementById("details");
-let detailsStartX=0, detailsStartY=0, detailsTracking=false;
-
-detailsView.addEventListener("touchstart", e=>{
-  if(e.touches.length!==1) return;
-  detailsStartX=e.touches[0].clientX;
-  detailsStartY=e.touches[0].clientY;
-  detailsTracking=true;
-});
-detailsView.addEventListener("touchmove", e=>{
-  if(!detailsTracking) return;
-  const dx=e.touches[0].clientX-detailsStartX;
-  const dy=e.touches[0].clientY-detailsStartY;
-  if(Math.abs(dx)>Math.abs(dy) && dx>0) e.preventDefault();
-});
-detailsView.addEventListener("touchend", e=>{
-  if(!detailsTracking) return;
-  detailsTracking=false;
-  const dx=e.changedTouches[0].clientX-detailsStartX;
-  if(dx>80) closeDetails();
-});
-
+// ===============================
+// DETAILS FUNCTIONS
+// ===============================
 function openDetails(id){ active=tasks.find(t=>t.id===id); editMode=false; renderDetails(); detailsView.classList.remove("hidden"); }
 function closeDetails(){ save(); render(); detailsView.classList.add("hidden"); }
-function toggleEdit(){ 
+function toggleEdit(){
   if(editMode){ active.title=eTitle.value.trim(); active.desc=eDesc.value.trim(); active.scheduled=eDate.value; active.edited=Date.now(); save(); }
-  editMode=!editMode;
-  editBtn.textContent=editMode?"Done":"Edit";
-  renderDetails();
+  editMode=!editMode; editBtn.textContent=editMode?"Done":"Edit"; renderDetails();
 }
 function deleteTask(){ tasks=tasks.filter(t=>t.id!==active.id); save(); closeDetails(); }
-
 function renderDetails(){
-  vTitle.textContent=active.title;
-  vDesc.textContent=active.desc;
-  eTitle.value=active.title;
-  eDesc.value=active.desc;
-  eDate.value=active.scheduled; // <-- only show stored value
-  vDate.textContent=active.scheduled||"(not scheduled)";
-
+  vTitle.textContent=active.title; vDesc.textContent=active.desc; eTitle.value=active.title; eDesc.value=active.desc;
+eDate.value = active.scheduled || "";
+vDate.textContent = active.scheduled
+  ? active.scheduled
+  : "To Be Scheduled";
   secDesc.classList.toggle("hidden",!editMode&&!active.desc);
   secSubs.classList.toggle("hidden",!editMode&&active.subtasks.length===0);
   secDate.classList.remove("hidden");
-
   [vTitle,vDesc,vDate].forEach(e=>e.classList.toggle("hidden",editMode));
   [eTitle,eDesc,eDate,subInput,addSubBtn,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
-
-  subtasks.innerHTML="";
-  active.subtasks.forEach(s=>{
-    const r=document.createElement("div"); r.className="subtask";
-    r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
-    subtasks.append(r);
-  });
-
+  subtasks.innerHTML=""; active.subtasks.forEach(s=>{ const r=document.createElement("div"); r.className="subtask"; r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`; subtasks.append(r); });
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
-
-function addSubtasks(){ 
-  active.desc=eDesc.value.trim(); active.edited=Date.now(); 
-  subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false}));
-  subInput.value=""; save(); renderDetails();
-}
-
+function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
 function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
 
 render();
