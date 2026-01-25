@@ -35,6 +35,7 @@ header .version { font-size: 12px; color: #888; }
   padding-top: 72px;
   padding-bottom: 120px;
   overflow-y: auto;
+  position: relative;
 }
 
 /* TASK */
@@ -55,7 +56,7 @@ header .version { font-size: 12px; color: #888; }
   background: #fff;
   position: relative;
   z-index: 2;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, opacity 0.25s ease;
   touch-action: pan-y;
 }
 
@@ -111,6 +112,7 @@ header .version { font-size: 12px; color: #888; }
   display: flex;
   gap: 8px;
   z-index: 20;
+  touch-action: pan-x;
 }
 #addBar input, #addBar select {
   flex: 1;
@@ -158,22 +160,51 @@ input, textarea, select {
   border-radius: 12px;
   border: 1px solid #ccc;
 }
-input[type="date"] { height: 40px; }
+input[type="date"] { height: 40px; padding: 8px; }
 
 textarea { resize: none; }
 
-/* ADVANCED ADD */
+/* SUBTASK */
+.subtask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.subtask input { width: 20px; height: 20px; }
+.subtask .text { flex: 1; }
+
+#deleteBtn {
+  margin: 16px 12px;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 16px;
+  background: #ff3b30;
+  color: #fff;
+  border: none;
+}
+
+.timestamps {
+  margin: 0 12px 24px;
+  font-size: 12px;
+  color: #888;
+}
+
+/* ADVANCED ADD TASK */
 #advAddTask {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   max-height: 90%;
+  overflow-y: auto;
   background: #fff;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.15);
   transform: translateY(100%);
   transition: transform 0.3s ease;
-  z-index: 40;
+  z-index: 30;
   padding: 16px;
+  touch-action: none;
 }
 #advAddTask .handle {
   width: 40px;
@@ -207,71 +238,41 @@ textarea { resize: none; }
   <button onclick="openAdvancedAdd()">⋁</button>
 </div>
 
-<!-- ADVANCED ADD -->
+<!-- ADVANCED ADD TASK -->
 <div id="advAddTask">
   <div class="handle"></div>
+  <h3>Advanced Add Task</h3>
+  <div class="section"><input id="advTitle" placeholder="Task title" /></div>
+  <div class="section"><textarea id="advDesc" placeholder="Description" rows="3"></textarea></div>
   <div class="section">
-    <input id="advTitle" placeholder="Task title">
+    <select id="advPriority">
+      <option value="3">Normal</option>
+      <option value="2">Important</option>
+      <option value="1">Must</option>
+    </select>
   </div>
+  <div class="section"><textarea id="advSubtasks" placeholder="Subtasks, one per line" rows="3"></textarea></div>
   <div class="section">
-    <textarea id="advDesc" placeholder="Description"></textarea>
-  </div>
-  <div class="section">
-    <input type="date" id="advDate">
+    <label>Scheduled Date:</label>
+    <input type="date" id="advDate" />
   </div>
   <button onclick="addAdvancedTask()">Add Task</button>
-</div>
-
-<!-- DETAILS -->
-<div id="details" class="hidden">
-  <header>
-    <button onclick="closeDetails()">← Back</button>
-    <button id="editBtn" onclick="toggleEdit()">Edit</button>
-  </header>
-  <div class="spacer"></div>
-
-  <div class="section">
-    <h3>Title</h3>
-    <div id="vTitle" class="read"></div>
-    <input id="eTitle" class="hidden">
-  </div>
-
-  <div class="section">
-    <h3>Scheduled Date</h3>
-    <div id="vDate" class="read"></div>
-    <input type="date" id="eDate" class="hidden">
-  </div>
+  <button onclick="closeAdvancedAdd()">Cancel</button>
 </div>
 
 <script>
-const content = document.getElementById("content");
-const adv = document.getElementById("advAddTask");
-const advDate = document.getElementById("advDate");
-const todayStr = new Date().toISOString().slice(0,10);
-advDate.value = todayStr;
+/* 🔼 PULL UP FROM ADD BAR */
+const addBar = document.getElementById("addBar");
+let barStartY = 0;
 
-/* PULL UP ADVANCED ADD FROM CONTENT */
-let pullStartY = 0;
-content.addEventListener("touchstart", e => {
-  pullStartY = e.touches[0].clientY;
-});
-content.addEventListener("touchend", e => {
-  const dy = pullStartY - e.changedTouches[0].clientY;
-  if (dy > 80) openAdvancedAdd();
+addBar.addEventListener("touchstart", e => {
+  barStartY = e.touches[0].clientY;
 });
 
-function openAdvancedAdd() {
-  adv.style.transform = "translateY(0)";
-}
-function closeAdvancedAdd() {
-  adv.style.transform = "translateY(100%)";
-}
-
-/* DETAILS DATE FIX */
-function renderDetails() {
-  vDate.textContent = active.scheduled || todayStr;
-  eDate.value = active.scheduled || todayStr;
-}
+addBar.addEventListener("touchend", e => {
+  const endY = e.changedTouches[0].clientY;
+  if (barStartY - endY > 60) openAdvancedAdd();
+});
 </script>
 
 </body>
