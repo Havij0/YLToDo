@@ -328,7 +328,38 @@ vDate.textContent = active.scheduled
   secDate.classList.remove("hidden");
   [vTitle,vDesc,vDate].forEach(e=>e.classList.toggle("hidden",editMode));
   [eTitle,eDesc,eDate,subInput,addSubBtn,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
-  subtasks.innerHTML=""; active.subtasks.forEach(s=>{ const r=document.createElement("div"); r.className="subtask"; r.innerHTML=`<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`; subtasks.append(r); });
+subtasks.innerHTML = "";
+
+active.subtasks.forEach((s, i) => {
+  const r = document.createElement("div");
+  r.className = "subtask";
+
+  const cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.checked = s.done;
+
+  cb.onchange = () => {
+    // save subtask state
+    s.done = cb.checked;
+
+    // auto-update parent task
+    active.done =
+      active.subtasks.length > 0 &&
+      active.subtasks.every(st => st.done);
+
+    active.edited = Date.now();
+    save();
+    render();
+    renderDetails();
+  };
+
+  const text = document.createElement("div");
+  text.className = "text";
+  text.textContent = s.title;
+
+  r.append(cb, text);
+  subtasks.append(r);
+});
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
