@@ -93,6 +93,17 @@ textarea { resize: none; }
 
 /* AGENDA DATE HEADER */
 .agenda-date { margin: 12px 12px 4px; font-weight: 600; font-size: 14px; color: #333; }
+
+/* RESCHEDULE POPUP */
+#reschedulePopup { 
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 16px; z-index: 40; min-width: 220px;
+  display: flex; flex-direction: column; gap:8px;
+}
+#reschedulePopup.hidden { display: none; }
+#reschedulePopup button { padding:8px; border-radius:12px; border:none; background:#007aff; color:#fff; cursor:pointer; }
+#reschedulePopup input[type=date]{ padding:6px; border-radius:8px; border:1px solid #ccc; }
 </style>
 </head>
 
@@ -154,6 +165,15 @@ textarea { resize: none; }
   <div class="timestamps" id="timestamps"></div>
 </div>
 
+<!-- RESCHEDULE POPUP -->
+<div id="reschedulePopup" class="hidden">
+  <button onclick="rescheduleTask('tomorrow')">Tomorrow</button>
+  <button onclick="rescheduleTask('nextWeek')">Next Week</button>
+  <input type="date" id="rescheduleDate" />
+  <button onclick="confirmReschedule()">Set</button>
+  <button onclick="closeReschedule()">Cancel</button>
+</div>
+
 <script>
 // Elements
 const newTitle = document.getElementById("newTitle");
@@ -168,11 +188,14 @@ const advDate = document.getElementById("advDate");
 const tabs = document.querySelectorAll(".tab");
 const addBar = document.getElementById("addBar");
 const detailsView = document.getElementById("details");
+const reschedulePopup = document.getElementById("reschedulePopup");
+const rescheduleDateInput = document.getElementById("rescheduleDate");
 
 let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
 let currentTab = "today";
+let taskToReschedule = null;
 const SWIPE_WIDTH = 160;
 const todayStr = new Date().toISOString().slice(0,10);
 advDate.value = "";
@@ -227,56 +250,17 @@ function addAdvancedTask(){
 }
 
 // ===============================
-// ADVANCED PULL-UP PATCH
-// ===============================
-let addStartY=0, addDragging=false;
-addBar.addEventListener("touchstart", e=>{ addStartY=e.touches[0].clientY; addDragging=true; });
-addBar.addEventListener("touchmove", e=>{
-  if(!addDragging) return;
-  const dy = addStartY - e.touches[0].clientY;
-  if(dy>60){ openAdvancedAdd(); addDragging=false; }
-});
-addBar.addEventListener("touchend",()=>{ addDragging=false; });
-
-let advStartY=0, advDragging=false;
-adv.addEventListener("touchstart", e=>{ advStartY=e.touches[0].clientY; advDragging=true; adv.style.transition="none"; });
-adv.addEventListener("touchmove", e=>{ if(!advDragging) return; const dy=e.touches[0].clientY-advStartY; if(dy>0) adv.style.transform=`translateY(${dy}px)`; });
-adv.addEventListener("touchend", e=>{ advDragging=false; adv.style.transition="transform 0.3s ease"; const dy=e.changedTouches[0].clientY-advStartY; if(dy>120) closeAdvancedAdd(); else adv.style.transform="translateY(0)"; });
-
-// ===============================
-// DETAILS SWIPE BACK PATCH
-// ===============================
-let detailsStartX=0, detailsStartY=0, detailsTracking=false;
-detailsView.addEventListener("touchstart", e=>{
-  if(e.touches.length!==1) return;
-  detailsStartX=e.touches[0].clientX; detailsStartY=e.touches[0].clientY; detailsTracking=true;
-});
-detailsView.addEventListener("touchmove", e=>{
-  if(!detailsTracking) return;
-  const dx=e.touches[0].clientX - detailsStartX;
-  const dy=e.touches[0].clientY - detailsStartY;
-  if(Math.abs(dx)>Math.abs(dy) && dx>0) e.preventDefault();
-});
-detailsView.addEventListener("touchend", e=>{
-  if(!detailsTracking) return; detailsTracking=false;
-  const dx = e.changedTouches[0].clientX - detailsStartX;
-  if(dx>80) closeDetails();
-});
-
-// ===============================
-// ADVANCED PULL-UP FUNCTIONS
+// ADVANCED PULL-UP
 // ===============================
 function openAdvancedAdd(){ adv.style.transform="translateY(0)"; }
 function closeAdvancedAdd(){ adv.style.transform="translateY(100%)"; }
 
 // ===============================
-// RENDER TASKS
+// RENDER
 // ===============================
 function render(){
   tasksDiv.innerHTML="";
-
   if(currentTab==="agenda"){
-    // Group by date
     const scheduledTasks = tasks.filter(t=>t.scheduled);
     const grouped = {};
     scheduledTasks.forEach(t=>{
@@ -304,7 +288,7 @@ function renderTaskCard(task){
   const bg=document.createElement("div"); bg.className="swipe-bg";
   bg.append(
     swipeBtn("✏️","#007aff",()=>openDetails(task.id)),
-swipeBtn("📅","#ff9500",()=>openReschedule(task))
+    swipeBtn("📅","#ff9500",()=>openReschedule(task)),
     swipeBtn("🗑","#ff3b30",()=>{ tasks=tasks.filter(t=>t.id!==task.id); save(); render(); })
   );
 
@@ -332,7 +316,7 @@ swipeBtn("📅","#ff9500",()=>openReschedule(task))
 }
 
 // ===============================
-// DETAILS FUNCTIONS
+// DETAILS
 // ===============================
 function openDetails(id){ active=tasks.find(t=>t.id===id); editMode=false; renderDetails(); detailsView.classList.remove("hidden"); }
 function closeDetails(){ save(); render(); detailsView.classList.add("hidden"); }
@@ -357,97 +341,40 @@ function renderDetails(){
   [vTitle,vDesc,vDate].forEach(e=>e.classList.toggle("hidden",editMode));
   [eTitle,eDesc,eDate,subInput,addSubBtn,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
   subtasks.innerHTML = "";
-
   active.subtasks.forEach((s, i) => {
-    const r = document.createElement("div");
-    r.className = "subtask";
-
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = s.done;
-
-    cb.onchange = () => {
-      s.done = cb.checked;
-      active.done = active.subtasks.length>0 && active.subtasks.every(st=>st.done);
-      active.edited = Date.now();
-      save(); render(); renderDetails();
-    };
-
-    const text = document.createElement("div");
-    text.className = "text";
-    text.textContent = s.title;
-
-    r.append(cb, text);
-    subtasks.append(r);
+    const r = document.createElement("div"); r.className = "subtask";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = s.done;
+    cb.onchange = () => { s.done = cb.checked; active.done = active.subtasks.every(st=>st.done); active.edited = Date.now(); save(); render(); renderDetails(); };
+    const text = document.createElement("div"); text.className = "text"; text.textContent = s.title;
+    r.append(cb, text); subtasks.append(r);
   });
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
 function swipeBtn(icon,color,fn){ const b=document.createElement("div"); b.className="swipe-btn"; b.textContent=icon; b.style.background=color; b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; }
 
-render();
-let taskToReschedule = null;
-const reschedulePopup = document.getElementById("reschedulePopup");
-const rescheduleDateInput = document.getElementById("rescheduleDate");
-
-function openReschedule(task) {
-  taskToReschedule = task;
-  reschedulePopup.classList.remove("hidden");
-
-  // clear or set default
-  rescheduleDateInput.value = "";
-}
-
-function closeReschedule() {
-  taskToReschedule = null;
-  reschedulePopup.classList.add("hidden");
-}
-
-function rescheduleTask(option) {
-  if (!taskToReschedule) return;
-
+// ===============================
+// RESCHEDULE
+// ===============================
+function openReschedule(task){ taskToReschedule = task; reschedulePopup.classList.remove("hidden"); rescheduleDateInput.value = task.scheduled || ""; }
+function closeReschedule(){ taskToReschedule=null; reschedulePopup.classList.add("hidden"); }
+function rescheduleTask(option){
+  if(!taskToReschedule) return;
   const today = new Date();
   let newDate = "";
-
-  if(option === "tomorrow") {
-    today.setDate(today.getDate()+1);
-    newDate = today.toISOString().slice(0,10);
-  } else if(option === "nextWeek") {
-    today.setDate(today.getDate()+7);
-    newDate = today.toISOString().slice(0,10);
-  }
-
-  taskToReschedule.scheduled = newDate;
-  taskToReschedule.edited = Date.now();
-  save(); render();
-  closeReschedule();
+  if(option==="tomorrow"){ today.setDate(today.getDate()+1); newDate=today.toISOString().slice(0,10); }
+  else if(option==="nextWeek"){ today.setDate(today.getDate()+7); newDate=today.toISOString().slice(0,10); }
+  taskToReschedule.scheduled = newDate; taskToReschedule.edited=Date.now(); save(); render(); closeReschedule();
+}
+function confirmReschedule(){
+  if(!taskToReschedule || !rescheduleDateInput.value) return;
+  taskToReschedule.scheduled = rescheduleDateInput.value; taskToReschedule.edited=Date.now(); save(); render(); closeReschedule();
 }
 
-function confirmReschedule() {
-  if (!taskToReschedule) return;
-  if(rescheduleDateInput.value){
-    taskToReschedule.scheduled = rescheduleDateInput.value;
-    taskToReschedule.edited = Date.now();
-    save(); render();
-    closeReschedule();
-  }
-}
-
+// ===============================
+// INIT
+// ===============================
+render();
 </script>
-
-<!-- RESCHEDULE POPUP -->
-<div id="reschedulePopup" class="hidden" style="
-  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-  background: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  padding: 16px; z-index: 40; min-width: 220px;
-">
-  <div style="display:flex; flex-direction: column; gap:8px;">
-    <button onclick="rescheduleTask('tomorrow')">Tomorrow</button>
-    <button onclick="rescheduleTask('nextWeek')">Next Week</button>
-    <input type="date" id="rescheduleDate" />
-    <button onclick="confirmReschedule()">Set</button>
-    <button onclick="closeReschedule()">Cancel</button>
-  </div>
-</div>
 </body>
 </html>
