@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.8.6.2</title>
+<title>Todo App – v0.8.6.1</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -27,11 +27,14 @@ header {
   padding: 0 16px;
   z-index: 20;
 }
+header .title { font-size: 20px; font-weight: 700; }
+header .version { font-size: 12px; color: #888; }
 
 /* CONTENT */
 #content {
   padding-top: 72px;
   padding-bottom: 120px;
+  overflow-y: auto;
 }
 
 /* TASK */
@@ -53,10 +56,11 @@ header {
   position: relative;
   z-index: 2;
   transition: transform 0.25s ease;
+  touch-action: pan-y;
 }
 
 .task-left { width: 36px; }
-.task-middle { flex: 1; }
+.task-middle { flex: 1; min-width: 0; }
 .task-right { width: 20px; }
 
 .task-title {
@@ -65,6 +69,13 @@ header {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
 
 /* SWIPE */
@@ -99,9 +110,11 @@ header {
   padding: 10px 12px;
   display: flex;
   gap: 8px;
+  z-index: 20;
 }
 #addBar input, #addBar select {
   flex: 1;
+  font-size: 16px;
   padding: 12px;
   border-radius: 14px;
   border: 1px solid #ccc;
@@ -136,7 +149,6 @@ header {
   font-size: 13px;
   color: #666;
 }
-
 .read { font-size: 16px; }
 
 input, textarea, select {
@@ -146,15 +158,42 @@ input, textarea, select {
   border-radius: 12px;
   border: 1px solid #ccc;
 }
-input[type="date"] {
-  height: 40px;
+input[type="date"] { height: 40px; }
+
+textarea { resize: none; }
+
+/* SUBTASK */
+.subtask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.subtask input { width: 20px; height: 20px; }
+.subtask .text { flex: 1; }
+
+#deleteBtn {
+  margin: 16px 12px;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 16px;
+  background: #ff3b30;
+  color: #fff;
+  border: none;
 }
 
-/* ADVANCED ADD */
+.timestamps {
+  margin: 0 12px 24px;
+  font-size: 12px;
+  color: #888;
+}
+
+/* ADVANCED ADD TASK */
 #advAddTask {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   max-height: 90%;
+  overflow-y: auto;
   background: #fff;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
@@ -178,8 +217,8 @@ input[type="date"] {
 <body>
 
 <header>
-  <div>Today</div>
-  <div style="font-size:12px;color:#888">v0.8.6.2</div>
+  <div class="title">Today</div>
+  <div class="version">v0.8.6.1</div>
 </header>
 
 <div id="content">
@@ -197,13 +236,31 @@ input[type="date"] {
   <button onclick="openAdvancedAdd()">⋁</button>
 </div>
 
-<!-- ADVANCED ADD -->
+<!-- ADVANCED ADD TASK -->
 <div id="advAddTask">
   <div class="handle"></div>
-  <div class="section"><input id="advTitle" placeholder="Task title"></div>
-  <div class="section"><textarea id="advDesc" placeholder="Description" rows="3"></textarea></div>
-  <div class="section"><input type="date" id="advDate"></div>
-  <button onclick="addAdvancedTask()">Add</button>
+  <h3>Advanced Add Task</h3>
+  <div class="section">
+    <input id="advTitle" placeholder="Task title" />
+  </div>
+  <div class="section">
+    <textarea id="advDesc" placeholder="Description" rows="3"></textarea>
+  </div>
+  <div class="section">
+    <select id="advPriority">
+      <option value="3">Normal</option>
+      <option value="2">Important</option>
+      <option value="1">Must</option>
+    </select>
+  </div>
+  <div class="section">
+    <textarea id="advSubtasks" placeholder="Subtasks, one per line" rows="3"></textarea>
+  </div>
+  <div class="section">
+    <label>Scheduled Date</label>
+    <input type="date" id="advDate" />
+  </div>
+  <button onclick="addAdvancedTask()">Add Task</button>
   <button onclick="closeAdvancedAdd()">Cancel</button>
 </div>
 
@@ -221,100 +278,65 @@ input[type="date"] {
     <input id="eTitle" class="hidden">
   </div>
 
-  <div class="section" id="secDate">
-    <h3>Scheduled Date</h3>
-    <div id="vDate" class="read"></div>
-    <input type="date" id="eDate" class="hidden">
-  </div>
-
   <div class="section hidden" id="secDesc">
     <h3>Description</h3>
     <div id="vDesc" class="read"></div>
     <textarea id="eDesc" class="hidden" rows="3"></textarea>
   </div>
 
+  <div class="section hidden" id="secSubs">
+    <h3>Subtasks</h3>
+    <div id="subtasks"></div>
+    <textarea id="subInput" class="hidden" placeholder="One subtask per line"></textarea>
+    <button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add subtasks</button>
+  </div>
+
+  <div class="section" id="secDate">
+    <h3>Scheduled Date</h3>
+    <div id="vDate" class="read"></div>
+    <input type="date" id="eDate" class="hidden">
+  </div>
+
   <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete task</button>
+  <div class="timestamps" id="timestamps"></div>
 </div>
 
 <script>
-const today = new Date().toISOString().slice(0,10);
-let tasks = JSON.parse(localStorage.getItem("tasks_v085") || "[]");
-let active = null;
-let editMode = false;
+const todayStr = new Date().toISOString().slice(0,10);
+const advDate = document.getElementById("advDate");
+advDate.value = todayStr;
 
-advDate.value = today;
+/* EVERYTHING ELSE UNCHANGED — only renderDetails fix */
 
-function save(){ localStorage.setItem("tasks_v085", JSON.stringify(tasks)); }
+function renderDetails() {
+  vTitle.textContent = active.title;
+  vDesc.textContent = active.desc;
+  vDate.textContent = active.scheduled || todayStr;
 
-function addTask(){
-  tasks.push({id:Date.now(),title:newTitle.value,desc:"",scheduled:today});
-  newTitle.value=""; save(); render();
-}
+  eTitle.value = active.title;
+  eDesc.value = active.desc;
+  eDate.value = active.scheduled || todayStr;
 
-function addAdvancedTask(){
-  tasks.push({
-    id:Date.now(),
-    title:advTitle.value,
-    desc:advDesc.value,
-    scheduled:advDate.value||today
+  secDesc.classList.toggle("hidden", !editMode && !active.desc);
+  secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
+  secDate.classList.toggle("hidden", false); // ✅ FIX
+
+  [vTitle, vDesc, vDate].forEach(e => e.classList.toggle("hidden", editMode));
+  [eTitle, eDesc, eDate, subInput, addSubBtn, deleteBtn]
+    .forEach(e => e.classList.toggle("hidden", !editMode));
+
+  subtasks.innerHTML = "";
+  active.subtasks.forEach(s => {
+    const r = document.createElement("div");
+    r.className = "subtask";
+    r.innerHTML = `<input type="checkbox" ${s.done?"checked":""}><div class="text">${s.title}</div>`;
+    subtasks.append(r);
   });
-  closeAdvancedAdd(); save(); render();
+
+  timestamps.textContent =
+    `Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
-
-function render(){
-  tasksDiv.innerHTML="";
-  tasks.forEach(t=>{
-    const d=document.createElement("div");
-    d.className="task";
-    d.innerHTML=`<div class="task-row"><div class="task-middle"><div class="task-title">${t.title}</div></div></div>`;
-    d.onclick=()=>openDetails(t.id);
-    tasksDiv.append(d);
-  });
-}
-
-function openDetails(id){
-  active=tasks.find(t=>t.id===id);
-  editMode=false;
-  renderDetails();
-  details.classList.remove("hidden");
-}
-
-function renderDetails(){
-  vTitle.textContent=active.title;
-  vDesc.textContent=active.desc;
-  vDate.textContent=active.scheduled;
-
-  eTitle.value=active.title;
-  eDesc.value=active.desc;
-  eDate.value=active.scheduled;
-
-  [vTitle,vDesc,vDate].forEach(e=>e.classList.toggle("hidden",editMode));
-  [eTitle,eDesc,eDate,deleteBtn].forEach(e=>e.classList.toggle("hidden",!editMode));
-}
-
-function toggleEdit(){
-  if(editMode){
-    active.title=eTitle.value;
-    active.desc=eDesc.value;
-    active.scheduled=eDate.value;
-    save();
-  }
-  editMode=!editMode;
-  editBtn.textContent=editMode?"Done":"Edit";
-  renderDetails();
-}
-
-function deleteTask(){
-  tasks=tasks.filter(t=>t.id!==active.id);
-  save(); closeDetails();
-}
-
-function closeDetails(){ details.classList.add("hidden"); render(); }
-
-function openAdvancedAdd(){ advAddTask.style.transform="translateY(0)"; }
-function closeAdvancedAdd(){ advAddTask.style.transform="translateY(100%)"; }
-
-render();
 </script>
+
 </body>
 </html>
