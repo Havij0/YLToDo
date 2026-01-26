@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.9.1</title>
+<title>Todo App – v0.10</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -101,6 +101,28 @@ textarea { resize: none; }
   padding: 12px 16px; display: none; text-align: center;
 }
 #reschedulePopup button { margin: 4px; padding: 6px 12px; border-radius: 12px; border: 1px solid #ccc; background: #eee; cursor: pointer; }
+
+/* CALENDAR */
+#calendarView {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+.calendar-day {
+  height: 44px;
+  border-radius: 12px;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cal-yellow { background:#ffd60a; }
+.cal-orange { background:#ff9f0a; }
+.cal-red { background:#ff3b30; color:#fff; }
+
 </style>
 </head>
 
@@ -108,7 +130,7 @@ textarea { resize: none; }
 
 <header>
   <div class="title">Todo App</div>
-  <div class="version">v0.9.1</div>
+  <div class="version">v0.10</div>
 </header>
 
 <div id="tabBar">
@@ -116,6 +138,14 @@ textarea { resize: none; }
   <div class="tab" data-tab="unscheduled">To Be Scheduled</div>
   <div class="tab" data-tab="agenda">Agenda</div>
 </div>
+<!-- AGENDA VIEW TOGGLE -->
+<div id="agendaToggle" style="display:none; padding:8px 12px;">
+  <button onclick="setAgendaView('calendar')">Calendar</button>
+  <button onclick="setAgendaView('list')">List</button>
+</div>
+
+<!-- CALENDAR CONTAINER -->
+<div id="calendarView" class="hidden"></div>
 
 <div id="content"><div id="tasks"></div></div>
 
@@ -195,6 +225,11 @@ const SWIPE_WIDTH = 160;
 const todayStr = new Date().toISOString().slice(0,10);
 advDate.value = "";
 
+let agendaView = "calendar";
+let selectedAgendaDate = null;
+
+const calendarView = document.getElementById("calendarView");
+const agendaToggle = document.getElementById("agendaToggle");
 /* ===============================
    ADD BAR : SWIPE UP TO OPEN ADVANCED ADD
    =============================== */
@@ -305,19 +340,83 @@ document.addEventListener("click", e=>{ if(!resPopup.contains(e.target)) hideRes
 // RENDER TASKS
 // ===============================
 function render(){
-  tasksDiv.innerHTML="";
-  if(currentTab==="agenda"){
-    const scheduledTasks = tasks.filter(t=>t.scheduled);
-    const grouped = {};
-    scheduledTasks.forEach(t=>{ if(!grouped[t.scheduled]) grouped[t.scheduled]=[]; grouped[t.scheduled].push(t); });
-    Object.keys(grouped).sort().forEach(date=>{
-      const header=document.createElement("div");
-      header.className="agenda-date"; header.textContent=date; tasksDiv.append(header);
-      grouped[date].forEach(task=>renderTaskCard(task));
-    });
-  } else {
-    tasks.filter(t=>currentTab==="today"?t.scheduled===todayStr:!t.scheduled||t.scheduled==="").forEach(task=>renderTaskCard(task));
+  tasksDiv.innerHTML = "";
+  calendarView.innerHTML = "";
+
+  if(currentTab !== "agenda"){
+    agendaToggle.style.display = "none";
+    calendarView.classList.add("hidden");
   }
+
+  if(currentTab === "agenda"){
+    agendaToggle.style.display = "block";
+
+    if(agendaView === "calendar"){
+      calendarView.classList.remove("hidden");
+      renderCalendar();
+      return;
+    }
+
+    // LIST VIEW
+    calendarView.classList.add("hidden");
+    renderAgendaList();
+    return;
+  }
+
+  // TODAY / UNSCHEDULED
+  tasks
+    .filter(t => currentTab==="today"
+      ? t.scheduled === todayStr
+      : !t.scheduled)
+    .forEach(renderTaskCard);
+}
+function renderCalendar(){
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month+1, 0);
+
+  for(let i=1; i<=last.getDate(); i++){
+    const dateStr = new Date(year, month, i).toISOString().slice(0,10);
+    const dayTasks = tasks.filter(t => t.scheduled === dateStr);
+
+    const cell = document.createElement("div");
+    cell.className = "calendar-day";
+    cell.textContent = i;
+
+    if(dayTasks.length){
+      const hasMust = dayTasks.some(t=>t.priority===1);
+      const hasImp = dayTasks.some(t=>t.priority===2);
+
+      if(hasMust) cell.classList.add("cal-red");
+      else if(hasImp) cell.classList.add("cal-orange");
+      else cell.classList.add("cal-yellow");
+    }
+
+    cell.onclick = ()=>{
+      selectedAgendaDate = dateStr;
+      agendaView = "list";
+      render();
+    };
+
+    calendarView.append(cell);
+  }
+}
+function renderAgendaList(){
+  const list = selectedAgendaDate
+    ? tasks.filter(t=>t.scheduled===selectedAgendaDate)
+    : tasks.filter(t=>t.scheduled);
+
+  if(selectedAgendaDate){
+    const h = document.createElement("div");
+    h.className="agenda-date";
+    h.textContent = selectedAgendaDate;
+    tasksDiv.append(h);
+  }
+
+  list.forEach(renderTaskCard);
 }
 
 function renderTaskCard(task){
@@ -423,8 +522,13 @@ function renderDetails(){
   timestamps.textContent=`Created: ${new Date(active.created).toLocaleString()} · Edited: ${new Date(active.edited).toLocaleString()}`;
 }
 function addSubtasks(){ active.desc=eDesc.value.trim(); active.edited=Date.now(); subInput.value.split("\n").filter(Boolean).forEach(t=>active.subtasks.push({title:t,done:false})); subInput.value=""; save(); renderDetails(); }
+  render();
+function setAgendaView(view){
+  agendaView = view;
+  render();
+}
 
-render();
+
 </script>
 </body>
 </html>
