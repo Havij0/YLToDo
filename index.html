@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.14</title>
+<title>Todo App – v0.16</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -57,8 +57,48 @@ header button:active {
 }
 .tab.active { color: #000; border-bottom: 2px solid #000; }
 
+/* AGENDA VIEW TOGGLE */
+#agendaToggle {
+  position: fixed;
+  top: 100px;
+  left: 0;
+  right: 0;
+  padding: 10px 12px;
+  display: none;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  z-index: 19;
+}
+#agendaToggle button {
+  margin-right: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  background: #f2f2f7;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  min-height: 44px;
+}
+#agendaToggle button.active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+#agendaToggle button:active {
+  transform: scale(0.97);
+}
+
 /* CONTENT */
-#content { padding-top: 102px; padding-bottom: 120px; overflow-y: auto; position: relative; }
+#content { 
+  padding-top: 102px; 
+  padding-bottom: 120px; 
+  overflow-y: auto; 
+  position: relative; 
+}
+#content.agenda-mode {
+  padding-top: 156px; /* Extra space for toggle buttons */
+}
 
 /* TASK */
 .task { background: #fff; margin: 10px 12px; border-radius: 16px; overflow: hidden; position: relative; }
@@ -265,37 +305,7 @@ textarea { resize: none; }
   width: calc(100% - 12px);
 }
 
-/* AGENDA VIEW TOGGLE */
-#agendaToggle {
-  padding: 10px 12px;
-  display: none;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
-}
-#agendaToggle button {
-  margin-right: 8px;
-  padding: 10px 20px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  background: #f2f2f7;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 15px;
-  min-height: 44px;
-}
-#agendaToggle button.active {
-  background: #000;
-  color: #fff;
-  border-color: #000;
-}
-#agendaToggle button:active {
-  transform: scale(0.97);
-}
-
 /* CALENDAR */
-#calendarView {
-  padding: 12px;
-}
 .month-section {
   margin-bottom: 24px;
 }
@@ -303,7 +313,7 @@ textarea { resize: none; }
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 12px;
-  padding-left: 4px;
+  padding: 0 12px;
 }
 
 /* Week day headers */
@@ -312,6 +322,7 @@ textarea { resize: none; }
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
   margin-bottom: 8px;
+  padding: 0 12px;
 }
 .weekday-header {
   text-align: center;
@@ -328,6 +339,7 @@ textarea { resize: none; }
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
+  padding: 0 12px;
 }
 .calendar-day {
   height: 48px;
@@ -466,7 +478,7 @@ textarea { resize: none; }
 
 <header>
   <div class="title">Todo App</div>
-  <div class="version">v0.14</div>
+  <div class="version">v0.16</div>
 </header>
 
 <div id="tabBar">
@@ -481,10 +493,6 @@ textarea { resize: none; }
   <button id="calendarBtn" class="active">Calendar</button>
   <button id="listBtn">List</button>
 </div>
-
-<!-- CALENDAR CONTAINER -->
-
-<div id="calendarView" class="hidden"></div>
 
 <div id="content"><div id="tasks"></div></div>
 
@@ -569,6 +577,7 @@ textarea { resize: none; }
 const newTitle = document.getElementById("newTitle");
 const newPriority = document.getElementById("newPriority");
 const tasksDiv = document.getElementById("tasks");
+const contentDiv = document.getElementById("content");
 const adv = document.getElementById("advAddTask");
 const advTitle = document.getElementById("advTitle");
 const advDesc = document.getElementById("advDesc");
@@ -580,7 +589,6 @@ const addBar = document.getElementById("addBar");
 const detailsView = document.getElementById("details");
 const resPopup = document.getElementById("reschedulePopup");
 const resInput = document.getElementById("rescheduleInput");
-const calendarView = document.getElementById("calendarView");
 const agendaToggle = document.getElementById("agendaToggle");
 const calendarBtn = document.getElementById("calendarBtn");
 const listBtn = document.getElementById("listBtn");
@@ -589,7 +597,7 @@ let tasks = JSON.parse(localStorage.getItem("tasks_v064") || "[]");
 let active = null;
 let editMode = false;
 let currentTab = "today";
-const SWIPE_WIDTH = 170; // Increased to fully show all 3 buttons
+const SWIPE_WIDTH = 170;
 
 // Local date formatting
 function formatDateLocal(date) {
@@ -783,11 +791,10 @@ document.addEventListener("click", e => {
 // ===============================
 function render() {
   tasksDiv.innerHTML = "";
-  calendarView.innerHTML = "";
 
   if (currentTab !== "agenda") {
     agendaToggle.style.display = "none";
-    calendarView.classList.add("hidden");
+    contentDiv.classList.remove("agenda-mode");
     
     // TODAY / UNSCHEDULED
     const filtered = tasks.filter(t => currentTab === "today"
@@ -810,21 +817,19 @@ function render() {
 
   // AGENDA TAB
   agendaToggle.style.display = "block";
+  contentDiv.classList.add("agenda-mode");
 
   if (agendaView === "calendar") {
-    calendarView.classList.remove("hidden");
     renderCalendar();
     return;
   }
 
   if (agendaView === "list") {
-    calendarView.classList.add("hidden");
     renderAgendaList();
     return;
   }
 
   if (agendaView === "dayList") {
-    calendarView.classList.add("hidden");
     renderDayList();
     return;
   }
@@ -940,7 +945,7 @@ function renderCalendar() {
     }
 
     monthSection.appendChild(monthGrid);
-    calendarView.appendChild(monthSection);
+    tasksDiv.appendChild(monthSection);
   }
 }
 
