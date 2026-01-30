@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Todo App – v0.18</title>
+<title>Todo App – v0.19</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -115,15 +115,6 @@ header button:active {
 .task-title { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; line-height: 1.4; }
 .dot { width: 12px; height: 12px; border-radius: 50%; }
 
-/* Alert indicator */
-.alert-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 16px;
-  z-index: 3;
-}
-
 /* SWIPE */
 .swipe-bg { position: absolute; inset: 0; display: flex; justify-content: flex-end; align-items: center; padding-right: 8px; background: #f2f2f7; z-index: 1; }
 .swipe-btn { 
@@ -191,7 +182,7 @@ input, textarea, select {
   border: 1px solid #ccc; 
   font-family: -apple-system, BlinkSystemFont, "SF Pro Text", sans-serif;
 }
-input[type="date"], input[type="time"] { height: 48px; padding: 12px; }
+input[type="date"] { height: 48px; padding: 12px; }
 textarea { resize: none; }
 
 /* SUBTASK */
@@ -222,8 +213,8 @@ textarea { resize: none; }
   left: 0; 
   right: 0; 
   bottom: 0;
-  height: 85vh;
-  max-height: 85vh;
+  height: 90vh;
+  max-height: 90vh;
   background: #fff;
   border-top-left-radius: 20px; 
   border-top-right-radius: 20px;
@@ -232,9 +223,10 @@ textarea { resize: none; }
   transition: transform 0.3s ease; 
   z-index: 30; 
   padding: 16px;
-  touch-action: none;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 #advAddTask .handle { 
   width: 40px; 
@@ -254,13 +246,16 @@ textarea { resize: none; }
 /* Compact form container */
 .adv-form-container {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: visible;
   margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Advanced add form group - COMPACT */
 .adv-form-group {
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 .adv-form-group label {
   display: block;
@@ -284,82 +279,22 @@ textarea { resize: none; }
 .adv-form-group textarea {
   resize: none;
 }
-.adv-form-group input[type="date"],
-.adv-form-group input[type="time"] {
+.adv-form-group input[type="date"] {
   height: 42px;
   padding: 10px;
-}
-
-/* Alert time fields - compact */
-.alert-time-group {
-  display: flex;
-  gap: 6px;
-}
-.alert-time-group input {
-  flex: 1;
-}
-
-/* Toggle switch - smaller */
-.toggle-group {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-}
-.toggle-group span {
-  font-size: 15px;
-}
-.toggle-switch {
-  position: relative;
-  width: 48px;
-  height: 28px;
-}
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .3s;
-  border-radius: 28px;
-}
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 24px;
-  width: 24px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
-}
-input:checked + .toggle-slider {
-  background-color: #34c759;
-}
-input:checked + .toggle-slider:before {
-  transform: translateX(20px);
 }
 
 /* Button container - fixed at bottom */
 .adv-button-container {
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding-top: 8px;
   border-top: 1px solid #eee;
 }
 
-#advAddTask button {
-  width: 100%;
+.adv-button-container button {
+  flex: 1;
   padding: 14px;
   font-size: 16px;
   font-weight: 600;
@@ -368,28 +303,19 @@ input:checked + .toggle-slider:before {
   cursor: pointer;
   min-height: 48px;
 }
-#advAddTask button:first-of-type {
+.adv-button-container button:first-child {
   background: #000;
   color: #fff;
 }
-#advAddTask button:first-of-type:active {
+.adv-button-container button:first-child:active {
   background: #333;
 }
-#advAddTask button:last-of-type {
+.adv-button-container button:last-child {
   background: #f2f2f7;
   color: #000;
 }
-#advAddTask button:last-of-type:active {
+.adv-button-container button:last-child:active {
   background: #e5e5e5;
-}
-
-/* Test alert button */
-.test-alert-btn {
-  background: #007aff !important;
-  font-size: 14px !important;
-  padding: 10px !important;
-  min-height: 40px !important;
-  margin-top: 4px;
 }
 
 /* AGENDA DATE HEADER */
@@ -591,13 +517,6 @@ input:checked + .toggle-slider:before {
 #addSubBtn:active {
   background: #e5e5e5;
 }
-
-/* Alert info display */
-.alert-info {
-  font-size: 15px;
-  color: #555;
-  margin-top: 4px;
-}
 </style>
 
 </head>
@@ -606,7 +525,7 @@ input:checked + .toggle-slider:before {
 
 <header>
   <div class="title">Todo App</div>
-  <div class="version">v0.18</div>
+  <div class="version">v0.19</div>
 </header>
 
 <div id="tabBar">
@@ -671,27 +590,6 @@ input:checked + .toggle-slider:before {
   <label>Scheduled Date</label>
   <input type="date" id="advDate" />
 </div>
-
-<div class="adv-form-group">
-  <label>Alert</label>
-  <div class="toggle-group">
-    <span>Enable alert</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="advAlertEnabled" onchange="toggleAlertFields()">
-      <span class="toggle-slider"></span>
-    </label>
-  </div>
-</div>
-
-<div id="alertFields" class="hidden">
-  <div class="adv-form-group">
-    <label>Alert Date & Time</label>
-    <div class="alert-time-group">
-      <input type="date" id="advAlertDate" />
-      <input type="time" id="advAlertTime" />
-    </div>
-  </div>
-</div>
 ```
 
   </div>
@@ -699,7 +597,6 @@ input:checked + .toggle-slider:before {
   <div class="adv-button-container">
     <button onclick="addAdvancedTask()">Add Task</button>
     <button onclick="closeAdvancedAdd()">Cancel</button>
-    <button class="test-alert-btn" onclick="testAlert()">🔔 Test Alert (30 sec)</button>
   </div>
 </div>
 
@@ -725,26 +622,6 @@ input:checked + .toggle-slider:before {
   <div class="section hidden" id="secSubs"><h3>Subtasks</h3><div id="subtasks"></div><textarea id="subInput" class="hidden" placeholder="One subtask per line" rows="3"></textarea><button id="addSubBtn" class="hidden" onclick="addSubtasks()">+ Add Subtasks</button></div>
   <div class="section" id="secDate"><h3>Scheduled Date</h3><input type="date" id="eDate" class="hidden"><div id="vDate" class="read"></div></div>
 
-  <div class="section" id="secAlert">
-    <h3>Alert</h3>
-    <div id="vAlert" class="read"></div>
-    <div id="eAlert" class="hidden">
-      <div class="toggle-group" style="margin-bottom: 12px;">
-        <span>Enable alert</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="eAlertEnabled" onchange="toggleEditAlertFields()">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div id="editAlertFields" class="hidden">
-        <div class="alert-time-group">
-          <input type="date" id="eAlertDate" />
-          <input type="time" id="eAlertTime" />
-        </div>
-      </div>
-    </div>
-  </div>
-
 <button id="deleteBtn" class="hidden" onclick="deleteTask()">Delete Task</button>
 
   <div class="timestamps" id="timestamps"></div>
@@ -762,10 +639,6 @@ const advDesc = document.getElementById("advDesc");
 const advPriority = document.getElementById("advPriority");
 const advSubtasks = document.getElementById("advSubtasks");
 const advDate = document.getElementById("advDate");
-const advAlertEnabled = document.getElementById("advAlertEnabled");
-const advAlertDate = document.getElementById("advAlertDate");
-const advAlertTime = document.getElementById("advAlertTime");
-const alertFields = document.getElementById("alertFields");
 const tabs = document.querySelectorAll(".tab");
 const addBar = document.getElementById("addBar");
 const detailsView = document.getElementById("details");
@@ -789,88 +662,11 @@ function formatDateLocal(date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function formatDateTimeLocal(date) {
-  return formatDateLocal(date) + 'T' + date.toTimeString().slice(0, 5);
-}
-
 const todayStr = formatDateLocal(new Date());
 advDate.value = "";
 
 let agendaView = "calendar";
 let selectedAgendaDate = null;
-
-// ===============================
-// TEST ALERT FUNCTION
-// ===============================
-function testAlert() {
-  if ("Notification" in window) {
-    if (Notification.permission === "granted") {
-      const now = new Date();
-      const alertTime = new Date(now.getTime() + 30000);
-      
-      const testTask = {
-        id: Date.now(),
-        title: "🔔 Test Alert (will fire in 30 seconds)",
-        desc: "This is a test alert to verify notifications work",
-        priority: 2,
-        done: false,
-        subtasks: [],
-        scheduled: todayStr,
-        alert: {
-          datetime: formatDateLocal(alertTime) + 'T' + alertTime.toTimeString().slice(0, 5),
-          triggered: false
-        },
-        created: Date.now(),
-        edited: Date.now()
-      };
-      
-      tasks.push(testTask);
-      save();
-      closeAdvancedAdd();
-      render();
-      
-      alert("✅ Test alert created! It will notify you in 30 seconds.\n\nMake sure:\n1. Notifications are enabled\n2. Keep this tab open\n3. The app checks every minute");
-      
-    } else if (Notification.permission === "default") {
-      Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-          testAlert();
-        } else {
-          alert("❌ Please enable notifications to test alerts");
-        }
-      });
-    } else {
-      alert("❌ Notifications are blocked. Please enable them in your browser settings.");
-    }
-  } else {
-    alert("❌ This browser doesn't support notifications");
-  }
-}
-
-// ===============================
-// ALERT TOGGLE
-// ===============================
-function toggleAlertFields() {
-  if (advAlertEnabled.checked) {
-    alertFields.classList.remove("hidden");
-    if (advDate.value) {
-      advAlertDate.value = advDate.value;
-      advAlertTime.value = "09:00";
-    }
-  } else {
-    alertFields.classList.add("hidden");
-  }
-}
-
-function toggleEditAlertFields() {
-  const eAlertEnabled = document.getElementById("eAlertEnabled");
-  const editAlertFields = document.getElementById("editAlertFields");
-  if (eAlertEnabled.checked) {
-    editAlertFields.classList.remove("hidden");
-  } else {
-    editAlertFields.classList.add("hidden");
-  }
-}
 
 // ===============================
 // VIEW TOGGLE BUTTONS
@@ -952,7 +748,6 @@ function addTask() {
     done: false, 
     subtasks: [], 
     scheduled, 
-    alert: null,
     created: now, 
     edited: now
   });
@@ -970,14 +765,6 @@ function addAdvancedTask() {
   const now = Date.now();
   const subs = advSubtasks.value.split("\n").filter(Boolean).map(s => ({title: s, done: false}));
   
-  let alert = null;
-  if (advAlertEnabled.checked && advAlertDate.value && advAlertTime.value) {
-    alert = {
-      datetime: advAlertDate.value + 'T' + advAlertTime.value,
-      triggered: false
-    };
-  }
-  
   tasks.push({
     id: now, 
     title: t, 
@@ -986,7 +773,6 @@ function addAdvancedTask() {
     done: false, 
     subtasks: subs, 
     scheduled: advDate.value || "", 
-    alert: alert,
     created: now, 
     edited: now
   });
@@ -996,10 +782,6 @@ function addAdvancedTask() {
   advSubtasks.value = ""; 
   advPriority.value = 3; 
   advDate.value = "";
-  advAlertEnabled.checked = false;
-  advAlertDate.value = "";
-  advAlertTime.value = "";
-  alertFields.classList.add("hidden");
   
   save(); 
   render(); 
@@ -1361,13 +1143,6 @@ function renderTaskCard(task) {
   dot.style.background = task.priority === 1 ? "#ff3b30" : task.priority === 2 ? "#ff9500" : "#ffd60a";
   right.append(dot);
 
-  if (task.alert && !task.alert.triggered) {
-    const alertIcon = document.createElement("div");
-    alertIcon.className = "alert-indicator";
-    alertIcon.textContent = "🔔";
-    row.appendChild(alertIcon);
-  }
-
   row.append(left, mid, right); 
   card.append(bg, row); 
   tasksDiv.append(card);
@@ -1453,20 +1228,6 @@ function toggleEdit() {
     active.title = eTitle.value.trim(); 
     active.desc = eDesc.value.trim(); 
     active.scheduled = eDate.value;
-    
-    const eAlertEnabled = document.getElementById("eAlertEnabled");
-    const eAlertDate = document.getElementById("eAlertDate");
-    const eAlertTime = document.getElementById("eAlertTime");
-    
-    if (eAlertEnabled.checked && eAlertDate.value && eAlertTime.value) {
-      active.alert = {
-        datetime: eAlertDate.value + 'T' + eAlertTime.value,
-        triggered: active.alert ? active.alert.triggered : false
-      };
-    } else {
-      active.alert = null;
-    }
-    
     active.edited = Date.now(); 
     save(); 
   }
@@ -1489,41 +1250,12 @@ function renderDetails() {
   eDate.value = active.scheduled || "";
   vDate.textContent = active.scheduled ? active.scheduled : "To Be Scheduled";
   
-  const vAlert = document.getElementById("vAlert");
-  const eAlert = document.getElementById("eAlert");
-  const eAlertEnabled = document.getElementById("eAlertEnabled");
-  const eAlertDate = document.getElementById("eAlertDate");
-  const eAlertTime = document.getElementById("eAlertTime");
-  const editAlertFields = document.getElementById("editAlertFields");
-  
-  if (active.alert) {
-    const alertDate = new Date(active.alert.datetime);
-    vAlert.innerHTML = `🔔 ${alertDate.toLocaleString('default', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })}${active.alert.triggered ? ' <span style="color: #888;">(triggered)</span>' : ''}`;
-    
-    eAlertEnabled.checked = true;
-    eAlertDate.value = active.alert.datetime.split('T')[0];
-    eAlertTime.value = active.alert.datetime.split('T')[1];
-    editAlertFields.classList.remove("hidden");
-  } else {
-    vAlert.textContent = "No alert set";
-    eAlertEnabled.checked = false;
-    eAlertDate.value = "";
-    eAlertTime.value = "";
-    editAlertFields.classList.add("hidden");
-  }
-  
   secDesc.classList.toggle("hidden", !editMode && !active.desc);
   secSubs.classList.toggle("hidden", !editMode && active.subtasks.length === 0);
   secDate.classList.remove("hidden");
   
-  [vTitle, vDesc, vDate, vAlert].forEach(e => e.classList.toggle("hidden", editMode));
-  [eTitle, eDesc, eDate, eAlert, subInput, addSubBtn, deleteBtn].forEach(e => e.classList.toggle("hidden", !editMode));
+  [vTitle, vDesc, vDate].forEach(e => e.classList.toggle("hidden", editMode));
+  [eTitle, eDesc, eDate, subInput, addSubBtn, deleteBtn].forEach(e => e.classList.toggle("hidden", !editMode));
   
   subtasks.innerHTML = "";
   active.subtasks.forEach((s, i) => {
@@ -1558,54 +1290,6 @@ function addSubtasks() {
   save(); 
   renderDetails(); 
 }
-
-// ===============================
-// CHECK ALERTS
-// ===============================
-function checkAlerts() {
-  const now = new Date();
-  let hasTriggered = false;
-  
-  tasks.forEach(task => {
-    if (task.alert && !task.alert.triggered && !task.done) {
-      const alertTime = new Date(task.alert.datetime);
-      if (now >= alertTime) {
-        task.alert.triggered = true;
-        hasTriggered = true;
-        
-        console.log("🔔 Alert triggered for:", task.title);
-        
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("Task Reminder", {
-            body: task.title,
-            icon: "🔔",
-            badge: "🔔"
-          });
-        } else {
-          alert(`🔔 Reminder: ${task.title}`);
-        }
-      }
-    }
-  });
-  
-  if (hasTriggered) {
-    save();
-    render();
-  }
-}
-
-// Request notification permission
-if ("Notification" in window && Notification.permission === "default") {
-  Notification.requestPermission().then(permission => {
-    console.log("Notification permission:", permission);
-  });
-}
-
-// Check alerts every minute
-setInterval(checkAlerts, 60000);
-checkAlerts();
-
-console.log("✅ Alert system initialized. Checking every 60 seconds.");
 
 render();
 </script>
