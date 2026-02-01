@@ -845,9 +845,35 @@ document.addEventListener("click", e => {
 });
 
 // ===============================
+// AUTO-RESCHEDULE PAST TASKS
+// ===============================
+function autoReschedulePastTasks() {
+  const today = formatDateLocal(new Date());
+  let rescheduled = false;
+  
+  tasks.forEach(task => {
+    // If task has a scheduled date, is not done, and date is in the past
+    if (task.scheduled && !task.done && task.scheduled < today) {
+      task.scheduled = ""; // Move to unscheduled
+      rescheduled = true;
+    }
+  });
+  
+  if (rescheduled) {
+    save();
+  }
+}
+
+// Run on load and every time we render
+autoReschedulePastTasks();
+
+// ===============================
 // RENDER TASKS
 // ===============================
 function render() {
+  // Auto-reschedule past incomplete tasks
+  autoReschedulePastTasks();
+  
   tasksDiv.innerHTML = "";
 
   if (currentTab !== "agenda") {
